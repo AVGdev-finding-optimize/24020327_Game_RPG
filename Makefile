@@ -1,16 +1,16 @@
 # Compiler và flags
 CXX := g++
-CXXFLAGS := -I"include" -I"include/SDL2" -I"include/SDL2_image" -Wall -g
+INCLUDE_FLAGS := -Iinclude -Iinclude/SDL2 -Iinclude/SDL2_image -Iinclude/Core_System -Iinclude/SDL2_ttf
+CXXFLAGS := $(INCLUDE_FLAGS) -Wall -g -Dmain=SDL_main
 LDFLAGS := -L"lib" -lmingw32 -lSDL2main -lSDL2 -lSDL2_image
 
 # Thư mục
 SRC_DIR := src
 BUILD_DIR := build
 
-# Tìm tất cả file .cpp trong thư mục con của src
-SRC_DIRS := src/Core_System src/Graphics_Rendering src/Entities src/Map src/Combat_Mechanics src/Sound_Effects
-SRC_FILES := $(wildcard $(patsubst %, %/*.cpp, $(SRC_DIRS)))
-OBJ_FILES := $(patsubst src/%.cpp, build/%.o, $(SRC_FILES))
+# Tìm tất cả file .cpp trong src/
+SRC_FILES := $(wildcard $(SRC_DIR)/**/*.cpp)
+OBJ_FILES := $(patsubst $(SRC_DIR)/%.cpp, $(BUILD_DIR)/%.o, $(SRC_FILES))
 
 # File thực thi
 TARGET := $(BUILD_DIR)/main.exe
@@ -20,7 +20,7 @@ all: $(TARGET)
 
 # Link executable
 $(TARGET): $(OBJ_FILES)
-	$(CXX) $^ -o $@ $(LDFLAGS)
+	$(CXX) $(OBJ_FILES) -o $@ $(LDFLAGS)
 
 # Compile từng file .cpp thành .o
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
@@ -28,8 +28,8 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
 
 # Tạo thư mục build nếu chưa có
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	@if not exist $(BUILD_DIR) mkdir $(BUILD_DIR)
 
-# Clean
+# Clean nhưng giữ thư mục build
 clean:
-	cmd /c rmdir /s /q $(BUILD_DIR) || echo "No build folder to delete."
+	@del /S /Q $(BUILD_DIR)\*.o $(BUILD_DIR)\*.exe 2>nul || echo "Nothing to clean."

@@ -1,5 +1,6 @@
-#include <SDL2/SDL.h>
 #define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
+#include "Core_System/Game.h"
 
 Game* game = nullptr;
 

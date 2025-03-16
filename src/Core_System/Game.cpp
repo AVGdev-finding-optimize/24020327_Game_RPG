@@ -1,43 +1,55 @@
-#include "Core_System/Game.h"
+#include "Game.h"
 #include <iostream>
 
-Game::Game() : window(nullptr), renderer(nullptr), isRunning(false) {}
+Game::Game() : isRunning(false), window(nullptr), renderer(nullptr) {}
 
-Game::~Game() {}
+Game::~Game() {
+    clean();
+}
 
-void Game::init(const char* title, int xpos, int ypos, int width, int height, bool fullscreen) {
-    int flags = fullscreen ? SDL_WINDOW_FULLSCREEN : 0;
-    if (SDL_Init(SDL_INIT_VIDEO) == 0) {
-        window = SDL_CreateWindow(title, xpos, ypos, width, height, flags);
-        renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-        if (window && renderer) {
-            isRunning = true;
-        }
-    } else {
-        std::cerr << "SDL Initialization Failed! " << SDL_GetError() << std::endl;
+void Game::init(const char* title, int x, int y, int width, int height, bool fullscreen) {
+    // Khởi tạo SDL thông qua Graphic
+    if (!graphic.initSDL(width, height, title)) {
+        std::cerr << "Failed to initialize SDL!" << std::endl;
+        isRunning = false;
+        return;
     }
+
+    // Lấy cửa sổ và renderer từ Graphic
+    window = graphic.getWindow();
+    renderer = graphic.getRenderer();
+    
+    // Kiểm tra xem cửa sổ và renderer có được tạo thành công không
+    if (!window || !renderer) {
+        std::cerr << "Failed to create window or renderer!" << std::endl;
+        isRunning = false;
+        return;
+    }
+
+    // Game bắt đầu chạy
+    isRunning = true;
 }
 
 void Game::handleEvents() {
     SDL_Event event;
-    SDL_PollEvent(&event);
-    if (event.type == SDL_QUIT) {
-        isRunning = false;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+            isRunning = false;
+        }
     }
 }
 
 void Game::update() {
-    // Update game logic
+    // Update logic game tại đây
 }
 
 void Game::render() {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    SDL_RenderClear(renderer);
-    SDL_RenderPresent(renderer);
+    graphic.prepareSence();
+    // Vẽ đối tượng game tại đây
+    graphic.presentSence();
 }
 
 void Game::clean() {
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
+    graphic.quitSDL();
+    std::cout << "Game cleaned!\n";
 }

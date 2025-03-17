@@ -1,35 +1,50 @@
-#include "Game.h"
+#include "Core_System/Game.h"
+#include "Graphics_Rendering/Graphic.h"
 #include <iostream>
 
-Game::Game() : isRunning(false), window(nullptr), renderer(nullptr) {}
+#define SDL_MAIN_HANDLED
+#include <SDL2/SDL.h>
 
+// Constructor
+Game::Game() {
+    isRunning = false;
+}
+
+// Destructor
 Game::~Game() {
     clean();
 }
 
+// Hàm khởi tạo game
 void Game::init(const char* title, int x, int y, int width, int height, bool fullscreen) {
-    // Khởi tạo SDL thông qua Graphic
     if (!graphic.initSDL(width, height, title)) {
         std::cerr << "Failed to initialize SDL!" << std::endl;
         isRunning = false;
         return;
     }
 
-    // Lấy cửa sổ và renderer từ Graphic
     window = graphic.getWindow();
     renderer = graphic.getRenderer();
-    
-    // Kiểm tra xem cửa sổ và renderer có được tạo thành công không
+
     if (!window || !renderer) {
         std::cerr << "Failed to create window or renderer!" << std::endl;
         isRunning = false;
         return;
     }
 
-    // Game bắt đầu chạy
     isRunning = true;
 }
 
+// Hàm chạy vòng lặp game
+void Game::run() {
+    while (isRunning) {
+        handleEvents();
+        update();
+        render();
+    }
+}
+
+// Hàm xử lý sự kiện
 void Game::handleEvents() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -39,17 +54,20 @@ void Game::handleEvents() {
     }
 }
 
+// Hàm cập nhật trạng thái game
 void Game::update() {
-    // Update logic game tại đây
+    // Viết logic cập nhật game ở đây
 }
 
+// Hàm render game
 void Game::render() {
-    graphic.prepareSence();
-    // Vẽ đối tượng game tại đây
-    graphic.presentSence();
+    graphic.prepareScene();
+    // Vẽ hình ảnh ở đây
+    graphic.presentScene();
 }
 
+// Hàm dọn dẹp tài nguyên game
 void Game::clean() {
     graphic.quitSDL();
-    std::cout << "Game cleaned!\n";
+    isRunning = false;
 }

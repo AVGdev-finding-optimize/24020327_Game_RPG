@@ -19,8 +19,9 @@ class Graphic {
         SDL_Rect returnSize(SDL_Texture* texture , double ratio);
         void renderTexture(SDL_Texture* texture, int x = 0, int y = 0, int w = 100, int h = 100);
         
-        void prepareSence();
-        void presentSence();
+        void prepareScene();
+        void presentScene();
+
     
         // Thêm getter để lấy window và renderer
         SDL_Window* getWindow() { return window; }

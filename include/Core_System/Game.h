@@ -2,20 +2,26 @@
 #define GAME_H
 
 #include "Graphics_Rendering/Graphic.h"
+#include "Entities/Player.h"
+#include "Core_System/Const.h"
 
 class Game {
 private:
     bool isRunning;
+    Graphic graphic;
     SDL_Window* window;
     SDL_Renderer* renderer;
-    Graphic graphic; // Sử dụng lớp Graphic để xử lý đồ họa
+    SDL_Texture* BackgroundTexture; 
+    SDL_Texture* PlayerTexture;
+    Player player;
+
 
 public:
     Game();
     ~Game();
-
+    
     void run();
-    void init(const char* title, int x, int y, int width, int height, bool fullscreen);
+    bool init(const char* title, int x, int y, int width, int height, bool fullscreen);
     void handleEvents();
     void update();
     void render();

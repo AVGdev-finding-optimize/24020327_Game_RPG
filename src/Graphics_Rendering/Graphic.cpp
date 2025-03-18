@@ -6,9 +6,8 @@ Graphic::Graphic() {
     renderer = nullptr;
 }
 
-//Destructor
-
-void Graphic::quitSDL() {
+// Destructor
+Graphic::~Graphic() {
     if (renderer) {
         SDL_DestroyRenderer(renderer);
         renderer = nullptr;
@@ -18,11 +17,6 @@ void Graphic::quitSDL() {
         window = nullptr;
     }
     SDL_Quit();
-}
-
-// Destructor
-Graphic::~Graphic() {
-    quitSDL() ;
 }
 
 // Khởi tạo SDL
@@ -36,7 +30,7 @@ bool Graphic::initSDL(int SCREEN_WIDTH, int SCREEN_HEIGHT, const char* WINDOW_TI
         std::cerr << "Error create window: " << SDL_GetError() << std::endl;
         return false;
     }
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer) {
         std::cerr << "Error create renderer: " << SDL_GetError() << std::endl;
         return false;
@@ -55,10 +49,10 @@ void Graphic::presentScene() {
 }
 
 // Load texture từ file
-SDL_Texture* Graphic::loadTexture(const char* filename) {
-    SDL_Surface* surface = IMG_Load(filename);
+SDL_Texture* Graphic::loadTexture(const std::string& filename) {
+    SDL_Surface* surface = IMG_Load(filename.c_str());
     if (!surface) {
-        std::cerr << "Error loading image: " << SDL_GetError() << std::endl;
+        std::cerr << "Failed to load image: " << filename << " - " << IMG_GetError() << std::endl;
         return nullptr;
     }
     SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);

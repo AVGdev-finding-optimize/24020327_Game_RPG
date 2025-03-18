@@ -9,7 +9,7 @@ SRC_DIR := src
 BUILD_DIR := build
 
 # Danh sách file
-SRC_FILES := src/Core_System/Const.cpp src/Entities/Player.cpp src/Core_System/Game.cpp src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/main.cpp
+SRC_FILES := src/Entities/Player.cpp src/Core_System/Game.cpp src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/main.cpp
 OBJ_FILES := $(patsubst src/%.cpp, build/%.o, $(SRC_FILES))
 
 # File thực thi
@@ -34,4 +34,4 @@ $(BUILD_DIR):
 clean:
 	@echo "Cleaning up object files and executables..."
 	@del /S /Q build\*.o build\*.exe 2>nul || echo "No object files to delete."
-	@echo "Done!"
+	@echo "Done!""

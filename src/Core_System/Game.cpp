@@ -1,7 +1,5 @@
 #include "Core_System/Game.h"
-#include "Graphics_Rendering/Graphic.h"
 #include <iostream>
-#include "Const.h"
 
 #define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
@@ -31,24 +29,15 @@ bool Game::init(const char* title, int x, int y, int width, int height, bool ful
 
     std::cout << "SDL Initialized!\n";
     
-    window = graphic.getWindow();
-    renderer = graphic.getRenderer();
-
-    std::cout << "Loading background...\n";
-    
-    BackgroundTexture = graphic.loadTexture(BACKGROUND_PATH);
-    if (BackgroundTexture == nullptr) {
-        std::cerr << "Error load background" << std::endl;
+    background = graphic.loadTexture(BACKGROUND_PATH);
+    if (!background) {
+        std::cerr << "Error loading background" << std::endl;
         isRunning = false;
         return false;
     }
 
-    PlayerTexture = graphic.loadTexture(PLAYER_SPRITE_PATH);
-    if (PlayerTexture == nullptr) {
-        std::cerr << "Error load player sprite" << std::endl;
-        isRunning = false;
-        return false;
-    }
+    // Khởi tạo player
+    player.init(graphic);
 
     std::cout << "Background loaded!\n";
     isRunning = true;
@@ -59,16 +48,15 @@ bool Game::init(const char* title, int x, int y, int width, int height, bool ful
 void Game::run() {
     std::cout << "Game is running...\n";
     while (isRunning) {
-        frameStart = SDL_GetTicks();  // Lấy thời gian bắt đầu frame
-        
+        frameStart = SDL_GetTicks();
+
         handleEvents();
         update();
         render();
 
-        // Giới hạn FPS
         frameTime = SDL_GetTicks() - frameStart;
         if (frameTime < FRAME_DELAY) {
-            SDL_Delay(FRAME_DELAY - frameTime);  // Đợi cho đủ thời gian frame
+            SDL_Delay(FRAME_DELAY - frameTime);
         }
     }
 }
@@ -80,38 +68,31 @@ void Game::handleEvents() {
         if (event.type == SDL_QUIT) {
             isRunning = false;
         }
-        else if (event.type == SDL_WINDOWEVENT) {
-            if (event.window.event == SDL_WINDOWEVENT_EXPOSED) {
-                render();  // Vẽ lại ngay khi cửa sổ được kéo
-            }
-        }
+        player.handleInput(event);
     }
 }
 
 // Hàm cập nhật trạng thái game
 void Game::update() {
-    // Viết logic cập nhật game ở đây
+    player.update();
 }
 
 // Hàm render game
 void Game::render() {
     graphic.prepareScene();
-    graphic.renderTexture(BackgroundTexture, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    graphic.renderTexture(PlayerTexture, 100, 100, PLAYER_WIDTH, PLAYER_HEIGHT);
+    graphic.renderTexture(background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    player.render(graphic);
     graphic.presentScene();
 }
 
 // Hàm dọn dẹp tài nguyên game
 void Game::clean() {
     std::cout << "Cleaning up game...\n";
-    if (BackgroundTexture) {
-        SDL_DestroyTexture(BackgroundTexture);
-        BackgroundTexture = nullptr;
+
+    if (background) {
+        SDL_DestroyTexture(background);
+        background = nullptr;
     }
-    if (PlayerTexture) {
-        SDL_DestroyTexture(PlayerTexture);
-        PlayerTexture = nullptr;
-    }
+
     isRunning = false;
 }
-

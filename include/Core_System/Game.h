@@ -9,12 +9,8 @@ class Game {
 private:
     bool isRunning;
     Graphic graphic;
-    SDL_Window* window;
-    SDL_Renderer* renderer;
-    SDL_Texture* BackgroundTexture; 
-    SDL_Texture* PlayerTexture;
+    SDL_Texture* background;
     Player player;
-
 
 public:
     Game();

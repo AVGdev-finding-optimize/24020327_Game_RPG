@@ -1,10 +1,7 @@
 #include "Graphics_Rendering/Graphic.h"
 
 // Constructor
-Graphic::Graphic() {
-    window = nullptr;
-    renderer = nullptr;
-}
+Graphic::Graphic() : window(nullptr), renderer(nullptr) {}
 
 // Destructor
 Graphic::~Graphic() {
@@ -19,49 +16,66 @@ Graphic::~Graphic() {
     SDL_Quit();
 }
 
-// Khởi tạo SDL
-bool Graphic::initSDL(int SCREEN_WIDTH, int SCREEN_HEIGHT, const char* WINDOW_TITLE) {
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        std::cerr << "Error init SDL: " << SDL_GetError() << std::endl;
+// Khởi tạo SDL, cửa sổ và renderer
+bool Graphic::initSDL(int width, int height, const char* title) {
+    if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+        std::cerr << "SDL could not initialize! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
     }
-    window = SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+    window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_SHOWN);
     if (!window) {
-        std::cerr << "Error create window: " << SDL_GetError() << std::endl;
+        std::cerr << "Window could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
     }
+
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if (!renderer) {
-        std::cerr << "Error create renderer: " << SDL_GetError() << std::endl;
+        std::cerr << "Renderer could not be created! SDL_Error: " << SDL_GetError() << std::endl;
         return false;
     }
+
+    // Khởi tạo SDL_image
+    if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
+        std::cerr << "SDL_image could not initialize! SDL_Error: " << IMG_GetError() << std::endl;
+        return false;
+    }
+
     return true;
 }
 
-// Chuẩn bị cảnh trước khi vẽ
+// Load texture từ file ảnh
+SDL_Texture* Graphic::loadTexture(const std::string& filePath) {
+    SDL_Texture* texture = IMG_LoadTexture(renderer, filePath.c_str());
+    if (!texture) {
+        std::cerr << "Failed to load texture: " << filePath << " SDL_Error: " << SDL_GetError() << std::endl;
+    }
+    return texture;
+}
+
+// Render texture lên màn hình
+void Graphic::renderTexture(SDL_Texture* texture, int x, int y, int w, int h) {
+    if (!texture) return;
+    SDL_Rect dst = { x, y, w, h };
+    SDL_RenderCopy(renderer, texture, nullptr, &dst);
+}
+
+// Xóa màn hình trước khi render frame mới
 void Graphic::prepareScene() {
     SDL_RenderClear(renderer);
 }
 
-// Hiển thị hình ảnh lên màn hình
+// Hiển thị nội dung đã render lên màn hình
 void Graphic::presentScene() {
     SDL_RenderPresent(renderer);
 }
 
-// Load texture từ file
-SDL_Texture* Graphic::loadTexture(const std::string& filename) {
-    SDL_Surface* surface = IMG_Load(filename.c_str());
-    if (!surface) {
-        std::cerr << "Failed to load image: " << filename << " - " << IMG_GetError() << std::endl;
-        return nullptr;
-    }
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    SDL_FreeSurface(surface);
-    return texture;
+// Getter lấy renderer
+SDL_Renderer* Graphic::getRenderer() const {
+    return renderer;
 }
 
-// Vẽ hình ảnh
-void Graphic::renderTexture(SDL_Texture* texture, int x, int y, int w, int h) {
-    SDL_Rect dest = {x, y, w, h};
-    SDL_RenderCopy(renderer, texture, NULL, &dest);
+// Getter lấy window
+SDL_Window* Graphic::getWindow() const {
+    return window;
 }

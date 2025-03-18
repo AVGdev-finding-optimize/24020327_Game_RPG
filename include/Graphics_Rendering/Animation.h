@@ -6,20 +6,19 @@
 
 class Animation {
 private:
-    std::vector<SDL_Texture*> frames; // Danh sách các frame ảnh
-    int frameCount;  // Số frame ảnh
+    std::vector<SDL_Texture*> frames; // Danh sách các frame của animation
     int currentFrame; // Frame hiện tại
-    int frameDelay;   // Độ trễ giữa các frame
-    int frameTimer;   // Bộ đếm thời gian frame
+    Uint32 frameDelay; // Thời gian giữa các frame
+    Uint32 lastUpdate; // Thời gian cập nhật cuối cùng
 
 public:
-    Animation();
+    Animation(Uint32 delay = 100); // Constructor với thời gian mặc định giữa các frame
     ~Animation();
 
-    void addFrame(SDL_Texture* texture);
-    void update();
-    SDL_Texture* getCurrentFrame();
-    void reset();
+    void addFrame(SDL_Texture* texture); // Thêm frame mới vào animation
+    SDL_Texture* getCurrentFrame(); // Lấy frame hiện tại của animation
+    void update(); // Cập nhật frame animation theo thời gian
+    void clean(); // Dọn dẹp bộ nhớ
 };
 
 #endif

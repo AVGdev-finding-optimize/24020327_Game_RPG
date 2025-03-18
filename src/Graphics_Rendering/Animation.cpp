@@ -1,48 +1,40 @@
 #include "Graphics_Rendering/Animation.h"
+#include <SDL2/SDL.h>
 
-// Constructor
-Animation::Animation() {
-    frameCount = 0;
-    currentFrame = 0;
-    frameDelay = 10; // Mặc định mỗi frame tồn tại 10 lần update
-    frameTimer = 0;
+// Constructor với thời gian giữa các frame (mặc định 100ms)
+Animation::Animation(Uint32 delay) : currentFrame(0), frameDelay(delay), lastUpdate(0) {}
+
+// Destructor - Giải phóng bộ nhớ của các frame
+Animation::~Animation() {
+    clean();
 }
 
-// Destructor
-Animation::~Animation() {
-    for (SDL_Texture* frame : frames) {
-        SDL_DestroyTexture(frame);
+// Thêm một frame mới vào danh sách
+void Animation::addFrame(SDL_Texture* texture) {
+    if (texture) {
+        frames.push_back(texture);
+    }
+}
+
+// Lấy frame hiện tại của animation
+SDL_Texture* Animation::getCurrentFrame() {
+    if (frames.empty()) return nullptr;
+    return frames[currentFrame];
+}
+
+// Cập nhật frame theo thời gian
+void Animation::update() {
+    Uint32 now = SDL_GetTicks();
+    if (now - lastUpdate >= frameDelay) {
+        currentFrame = (currentFrame + 1) % frames.size();
+        lastUpdate = now;
+    }
+}
+
+// Dọn dẹp bộ nhớ, giải phóng texture
+void Animation::clean() {
+    for (SDL_Texture* texture : frames) {
+        SDL_DestroyTexture(texture);
     }
     frames.clear();
-}
-
-// Thêm frame vào animation
-void Animation::addFrame(SDL_Texture* texture) {
-    frames.push_back(texture);
-    frameCount++;
-}
-
-// Cập nhật animation (tăng frame dựa trên frameDelay)
-void Animation::update() {
-    if (frameCount > 1) {
-        frameTimer++;
-        if (frameTimer >= frameDelay) {
-            frameTimer = 0;
-            currentFrame = (currentFrame + 1) % frameCount;
-        }
-    }
-}
-
-// Lấy frame hiện tại
-SDL_Texture* Animation::getCurrentFrame() {
-    if (frameCount > 0) {
-        return frames[currentFrame];
-    }
-    return nullptr;
-}
-
-// Reset animation về frame đầu tiên
-void Animation::reset() {
-    currentFrame = 0;
-    frameTimer = 0;
 }

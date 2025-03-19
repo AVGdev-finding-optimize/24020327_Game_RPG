@@ -7,7 +7,9 @@ Player::Player(Graphic& graphic) {
     x = WINDOW_WIDTH / 2;   // Đặt nhân vật vào giữa màn hình
     y = WINDOW_HEIGHT / 2;
     speed = PLAYER_SPEED;
-    direction = "down";
+    joyX = 0;
+    joyY = 0;
+    direction = 180;
     currentTexture = nullptr;
 
     init(graphic); // Khởi tạo hoạt ảnh của nhân vật
@@ -24,74 +26,115 @@ Player::~Player() {
 
 // Khởi tạo hoạt ảnh của nhân vật
 void Player::init(Graphic& graphic) {
-    for (int i = 1; i <= 5; ++i) { // Hoạt ảnh có 5 frame
-        std::string pathUp = "assets/player/walk0." + std::to_string(i) + ".png";
-        std::string pathRight = "assets/player/walk90." + std::to_string(i) + ".png";
-        std::string pathLeft = "assets/player/walk-90." + std::to_string(i) + ".png";
-        std::string pathDown = "assets/player/walk180." + std::to_string(i) + ".png";
+    //Debug
+    std::cout << "Loading textures for player..." << std::endl;
+    
+    std::map<int, std::string> texturePaths = {
+        {0, "assets/player/idle0.png"},
+        {90, "assets/player/idle90.png"},
+        {-90, "assets/player/idle-90.png"},
+        {180, "assets/player/idle180.png"}
+    };
 
-        walkUp.addFrame(graphic.loadTexture(pathUp.data()));
-        walkRight.addFrame(graphic.loadTexture(pathRight.data()));
-        walkLeft.addFrame(graphic.loadTexture(pathLeft.data()));
-        walkDown.addFrame(graphic.loadTexture(pathDown.data()));
-    }
-    currentTexture = walkDown.getCurrentFrame(); // Mặc định hướng xuống
-}
+    for (const auto& pair : texturePaths) {
+        std::cout << "Loading texture: " << pair.second << " for direction " << pair.first << std::endl;
+        textures[pair.first] = graphic.loadTexture(pair.second.c_str());
 
-// Xử lý input từ bàn phím
-void Player::handleInput(const SDL_Event& event) {
-    int joyX = 0;
-    int joyY = 0;
-
-    if (event.type == SDL_KEYDOWN) {
-        switch (event.key.keysym.sym) {
-            case SDLK_UP:
-            case SDLK_w:
-                joyY = -1;
-                direction = "up";
-                currentTexture = walkUp.getCurrentFrame();
-                break;
-            case SDLK_DOWN:
-            case SDLK_s:
-                joyY = 1;
-                direction = "down";
-                currentTexture = walkDown.getCurrentFrame();
-                break;
-            case SDLK_LEFT:
-            case SDLK_a:
-                joyX = -1;
-                direction = "left";
-                currentTexture = walkLeft.getCurrentFrame();
-                break;
-            case SDLK_RIGHT:
-            case SDLK_d:
-                joyX = 1;
-                direction = "right";
-                currentTexture = walkRight.getCurrentFrame();
-                break;
+        if (textures[pair.first] == nullptr) {
+            std::cout << "ERROR: Failed to load texture for direction " << pair.first << std::endl;
         }
     }
 
-    float joyDist = std::sqrt(joyX * joyX + joyY * joyY);
+    //Tải lên các animation di chuyển
+    textures[0] = graphic.loadTexture("assets/player/idle0.png");
+    textures[45] = graphic.loadTexture("assets/player/idle0.png");
+    textures[90] = graphic.loadTexture("assets/player/idle90.png");
+    textures[135] = graphic.loadTexture("assets/player/idle180.png");
+    textures[180] = graphic.loadTexture("assets/player/idle180.png");
+    textures[-135] = graphic.loadTexture("assets/player/idle180.png");
+    textures[-90] = graphic.loadTexture("assets/player/idle-90.png");
+    textures[-45] = graphic.loadTexture("assets/player/idle0.png");
 
-    if (joyDist > 0) {
-        joyX /= joyDist;
-        joyY /= joyDist;
+    // Đặt sprite ban đầu
+    direction = 180;
+    currentTexture = textures[direction];
+}
 
-        x += joyX * speed;
-        y += joyY * speed;
+// Xử lý input từ bàn phím
+void Player::handleInputState(const Uint8* keystates) {
+    int newDirection = direction;
+    bool moving = false;
+
+    if (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W]) {
+        newDirection = 0; moving = true;
     }
+    if (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S]) {
+        newDirection = 180; moving = true;
+    }
+    if (keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) {
+        newDirection = -90; moving = true;
+    }
+    if (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) {
+        newDirection = 90; moving = true;
+    }
+    if ((keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) &&
+        (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W])) {
+        newDirection = -45;
+    }
+    if ((keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) &&
+        (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W])) {
+        newDirection = 45;
+    }
+    if ((keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) &&
+        (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S])) {
+        newDirection = -135;
+    }
+    if ((keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) &&
+        (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S])) {
+        newDirection = 135;
+    }
+
+    if (textures.find(direction) != textures.end()) { 
+        currentTexture = textures[direction];
+    }
+
+    if (moving) {
+        direction = newDirection;
+        currentTexture = textures[direction];
+    }
+
+    if (!moving) {
+        joyX = 0; joyY = 0;
+    }
+}
+
+void Player::updateMovement() {
+    joyDist = sqrt(joyX * joyX + joyY * joyY);
+    
+    if (joyDist > 0) {
+        double normX = joyX / joyDist;
+        double normY = joyY / joyDist;
+        tryMove(normX * speed, normY * speed);
+    }
+}
+
+void Player::tryMove(double dx, double dy) {
+    x += dx;
+    y += dy;
 }
 
 // Cập nhật trạng thái nhân vật (hoạt ảnh)
 void Player::update() {
-    if (direction == "up") {
+    //Debug
+    std::cout << "Player update - Current Texture: " << (currentTexture ? "OK" : "NULL") << std::endl;
+
+    if (direction == 0) {
         currentTexture = walkUp.getCurrentFrame();
-    } else if (direction == "down") {
+    } else if (direction == 180) {
         currentTexture = walkDown.getCurrentFrame();
-    } else if (direction == "left") {
+    } else if (direction == -90) {
         currentTexture = walkLeft.getCurrentFrame();
-    } else if (direction == "right") {
+    } else if (direction == 90) {
         currentTexture = walkRight.getCurrentFrame();
     }
 }

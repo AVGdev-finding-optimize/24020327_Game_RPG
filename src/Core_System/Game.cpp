@@ -35,11 +35,12 @@ bool Game::init(const char* title, int x, int y, int width, int height, bool ful
         isRunning = false;
         return false;
     }
-
+    std::cout << "Background loaded!\n";
+    
     // Khởi tạo player
     player.init(graphic);
-
-    std::cout << "Background loaded!\n";
+    std::cout << "Player initialized!\n";
+    
     isRunning = true;
     return true;
 }
@@ -68,13 +69,15 @@ void Game::handleEvents() {
         if (event.type == SDL_QUIT) {
             isRunning = false;
         }
-        player.handleInput(event);
+        player.handleInputState(SDL_GetKeyboardState(NULL));
+
     }
 }
 
 // Hàm cập nhật trạng thái game
 void Game::update() {
     player.update();
+    player.updateMovement();
 }
 
 // Hàm render game

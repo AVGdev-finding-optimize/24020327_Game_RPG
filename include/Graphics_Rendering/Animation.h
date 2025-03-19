@@ -3,22 +3,32 @@
 
 #include <vector>
 #include <SDL2/SDL.h>
+#include "Graphic.h"
 
 class Animation {
 private:
-    std::vector<SDL_Texture*> frames; // Danh sách các frame của animation
-    int currentFrame; // Frame hiện tại
-    Uint32 frameDelay; // Thời gian giữa các frame
-    Uint32 lastUpdate; // Thời gian cập nhật cuối cùng
+    std::vector<SDL_Texture*> frames;
+    Uint32 currentFrame;
+    Uint32 frameDelay;
+    Uint32 lastUpdate;
 
 public:
-    Animation(Uint32 delay = 100); // Constructor với thời gian mặc định giữa các frame
+    Animation(Uint32 delay = 100);
     ~Animation();
 
-    void addFrame(SDL_Texture* texture); // Thêm frame mới vào animation
-    SDL_Texture* getCurrentFrame(); // Lấy frame hiện tại của animation
-    void update(); // Cập nhật frame animation theo thời gian
-    void clean(); // Dọn dẹp bộ nhớ
+    void addCostume(SDL_Texture* texture);  // Add a new costume
+    void nextCostume(); // Change to the next frame
+    void switchCostume(int costumeIndex);   // Switch to a different costume
+    void show(Graphic& graphic, int x, int y, int w, int h); // Render the current frame
+
+    SDL_Texture* getCurrentCostume(); // Get the current frame
+    SDL_Texture* getFirstCostume(); // Get the first frame
+    SDL_Texture* getLastCostume(int index); // Get a specific frame
+
+    void update(); // Update the frame based on time
+    void clear(); // Free memory
+
+    void setSize(int scale); // Resize (not implemented yet)
 };
 
 #endif

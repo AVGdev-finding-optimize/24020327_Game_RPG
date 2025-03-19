@@ -11,6 +11,6 @@ const char* BACKGROUND_PATH = "assets/background/Grass.png";
 const char* PLAYER_SPRITE_PATH = "assets/player/idle.png";
 
 // Cấu hình nhân vật
-const int PLAYER_SPEED = 5;
+const int PLAYER_SPEED = 4;
 const int PLAYER_WIDTH = 50;
 const int PLAYER_HEIGHT = 50;

@@ -10,50 +10,54 @@ int frameTime;
 // Constructor
 Game::Game() : player(graphic) {
     isRunning = false;
+    currentCostume = nullptr;  // Initialize currentCostume
 }
 
 // Destructor
 Game::~Game() {
-    clean();
+    stopAll();
 }
 
-// Hàm kiểm tra khởi tạo game
-bool Game::init(const char* title, int x, int y, int width, int height, bool fullscreen) {
+// Initialize the game (Scratch: "when Green Flag clicked")
+bool Game::initSDL(const char* title, int x, int y, int width, int height, bool fullscreen) {
     std::cout << "Initializing SDL...\n";
 
     if (!graphic.initSDL(width, height, title)) {
-        std::cerr << "Error init SDL" << std::endl;
-        isRunning = false;
+        std::cerr << "Error initializing SDL" << std::endl;
         return false;
     }
 
     std::cout << "SDL Initialized!\n";
-    
-    background = graphic.loadTexture(BACKGROUND_PATH);
-    if (!background) {
+
+    // Load background as an animation object
+    SDL_Texture* bgTexture = graphic.loadTexture(BACKGROUND_PATH);
+    if (!bgTexture) {
         std::cerr << "Error loading background" << std::endl;
-        isRunning = false;
         return false;
     }
+    
+    background.addCostume(bgTexture);  
+    currentCostume = bgTexture;  // Set currentCostume to background texture
+
     std::cout << "Background loaded!\n";
     
-    // Khởi tạo player
-    player.init(graphic);
+    // Initialize the player
+    player.startAsClone(graphic);
     std::cout << "Player initialized!\n";
     
     isRunning = true;
     return true;
 }
 
-// Hàm chạy vòng lặp game
-void Game::run() {
+// Main game loop (Scratch: "forever loop")
+void Game::foreverLoop() {
     std::cout << "Game is running...\n";
     while (isRunning) {
         frameStart = SDL_GetTicks();
 
-        handleEvents();
-        update();
-        render();
+        whenKeyPressed(); // Handle inputs
+        updateGame();      // Update game logic
+        show();           // Render graphics
 
         frameTime = SDL_GetTicks() - frameStart;
         if (frameTime < FRAME_DELAY) {
@@ -62,40 +66,49 @@ void Game::run() {
     }
 }
 
-// Hàm xử lý sự kiện
-void Game::handleEvents() {
+// Handle events (Scratch: "when key pressed")
+void Game::whenKeyPressed() {
     SDL_Event event;
+    const Uint8* keystates = SDL_GetKeyboardState(NULL);
+
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             isRunning = false;
         }
-        player.handleInputState(SDL_GetKeyboardState(NULL));
+    }
+    
+    player.handleInputState(keystates);
+}
 
+// Update game logic (Scratch: "when I receive")
+void Game::updateGame() {
+    if (!isRunning) return;  // Exit early if the game is not running
+
+    player.update();       // Update player logic
+    player.moveSteps();    // Process player movement
+
+    // Optimized Debugging: Only log once when texture becomes NULL
+    static bool wasNull = false; // Track previous texture state
+    if (!player.getCurrentCostume()) {  // Use getter function
+        if (!wasNull) {  // Log only when texture first turns NULL
+            std::cerr << "[WARNING] Player texture is NULL!\n";
+            wasNull = true;
+        }
+    } else {
+        wasNull = false; // Reset flag when texture is valid again
     }
 }
 
-// Hàm cập nhật trạng thái game
-void Game::update() {
-    player.update();
-    player.updateMovement();
-}
 
-// Hàm render game
-void Game::render() {
+// Render game objects (Scratch: "show")
+void Game::show() {
     graphic.prepareScene();
-    graphic.renderTexture(background, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    player.render(graphic);
+    background.show(graphic, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT); // Render background using animation
+    player.show(graphic);
     graphic.presentScene();
 }
 
-// Hàm dọn dẹp tài nguyên game
-void Game::clean() {
+// Cleanup resources (Scratch: "stop all")
+void Game::stopAll() {
     std::cout << "Cleaning up game...\n";
-
-    if (background) {
-        SDL_DestroyTexture(background);
-        background = nullptr;
-    }
-
-    isRunning = false;
 }

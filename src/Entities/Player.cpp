@@ -2,144 +2,149 @@
 #include <iostream>
 #include <cmath>
 
-// Constructor: Khởi tạo vị trí, tốc độ và hướng mặc định của nhân vật
+// Constructor
 Player::Player(Graphic& graphic) {
-    x = WINDOW_WIDTH / 2;   // Đặt nhân vật vào giữa màn hình
+    x = WINDOW_WIDTH / 2;
     y = WINDOW_HEIGHT / 2;
     speed = PLAYER_SPEED;
     joyX = 0;
     joyY = 0;
     direction = 180;
-    currentTexture = nullptr;
+    currentCostume = nullptr;
+    lastFrameTime = 0;
 
-    init(graphic); // Khởi tạo hoạt ảnh của nhân vật
+    startAsClone(graphic);
 }
 
-// Destructor: Giải phóng bộ nhớ khi Player bị hủy
+// Destructor
 Player::~Player() {
-    if (currentTexture) {
-        SDL_DestroyTexture(currentTexture);
-        currentTexture = nullptr;
-        std::cout << "Player texture destroyed!\n";
+    if (currentCostume) {
+        SDL_DestroyTexture(currentCostume);
+        currentCostume = nullptr;
+        std::cout << "Player costume destroyed!\n";
     }
 }
 
-// Khởi tạo hoạt ảnh của nhân vật
-void Player::init(Graphic& graphic) {
-    //Debug
-    std::cout << "Loading textures for player..." << std::endl;
+// Initialize player textures (equivalent to Scratch's "start as a clone")
+void Player::startAsClone(Graphic& graphic) {
+    std::cout << "Loading player costumes...\n";
     
-    std::map<int, std::string> texturePaths = {
-        {0, "assets/player/idle0.png"},
-        {90, "assets/player/idle90.png"},
-        {-90, "assets/player/idle-90.png"},
-        {180, "assets/player/idle180.png"}
-    };
+    // Set default idle sprites
+    walkUp.addCostume(graphic.loadTexture("assets/player/idle0.png"));
+    walkDown.addCostume(graphic.loadTexture("assets/player/idle180.png"));
+    walkLeft.addCostume(graphic.loadTexture("assets/player/idle-90.png"));
+    walkRight.addCostume(graphic.loadTexture("assets/player/idle90.png"));
 
-    for (const auto& pair : texturePaths) {
-        std::cout << "Loading texture: " << pair.second << " for direction " << pair.first << std::endl;
-        textures[pair.first] = graphic.loadTexture(pair.second.c_str());
+    // Set default costume to first frame of walkDown
+    currentCostume = walkDown.getCurrentCostume();
+    direction = 180; 
 
-        if (textures[pair.first] == nullptr) {
-            std::cout << "ERROR: Failed to load texture for direction " << pair.first << std::endl;
+    // Load walking animation frames
+    for (int i = 1; i <= 5; i++) {
+        walkUp.addCostume(graphic.loadTexture("assets/player/walk0." + std::to_string(i) + ".png"));
+        walkDown.addCostume(graphic.loadTexture("assets/player/walk180." + std::to_string(i) + ".png"));
+        walkLeft.addCostume(graphic.loadTexture("assets/player/walk-90." + std::to_string(i) + ".png"));
+        walkRight.addCostume(graphic.loadTexture("assets/player/walk90." + std::to_string(i) + ".png"));
+    }
+}
+
+SDL_Texture* Player::getCurrentCostume() const {
+    return currentCostume;
+}
+
+// Handle keyboard input
+void Player::handleInputState(const Uint8* keystates) {
+    joyX = (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) - 
+           (keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]);
+    joyY = (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S]) - 
+           (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W]);
+    joyDist = sqrt(joyX * joyX + joyY * joyY);
+}
+
+// Move player (equivalent to Scratch's "move steps")
+void Player::moveSteps() {
+    if (joyDist > 0) {
+        updateMovement();
+    }
+}
+
+// Update movement logic
+void Player::updateMovement() {
+    if (joyDist > 1) {
+        joyDist = sqrt(2); // Normalize diagonal movement speed
+    }
+    joyX /= joyDist;
+    joyY /= joyDist;
+    tryMove(joyX * speed, joyY * speed);
+
+    // Change costume based on direction
+    if (joyX < 0) {
+        direction = -90;
+        currentCostume = walkLeft.getCurrentCostume();
+    } else if (joyX > 0) {
+        direction = 90;
+        currentCostume = walkRight.getCurrentCostume();
+    } else if (joyY < 0) {
+        direction = 0;
+        currentCostume = walkUp.getCurrentCostume();
+    } else if (joyY > 0) {
+        direction = 180;
+        currentCostume = walkDown.getCurrentCostume();
+    }
+
+    // Animate movement
+    Uint32 currentTime = SDL_GetTicks();
+    if (joyDist > 0) {
+        if (currentTime - lastFrameTime >= 100) { // Change frame every 0.3s
+            lastFrameTime = currentTime;
+
+            // Switch animation frames
+            if (direction == 0) {
+                walkUp.nextCostume();
+                currentCostume = walkUp.getCurrentCostume();
+            } else if (direction == 180) {
+                walkDown.nextCostume();
+                currentCostume = walkDown.getCurrentCostume();
+            } else if (direction == -90) {
+                walkLeft.nextCostume();
+                currentCostume = walkLeft.getCurrentCostume();
+            } else if (direction == 90) {
+                walkRight.nextCostume();
+                currentCostume = walkRight.getCurrentCostume();
+            }
         }
     }
 
-    //Tải lên các animation di chuyển
-    textures[0] = graphic.loadTexture("assets/player/idle0.png");
-    textures[45] = graphic.loadTexture("assets/player/idle0.png");
-    textures[90] = graphic.loadTexture("assets/player/idle90.png");
-    textures[135] = graphic.loadTexture("assets/player/idle180.png");
-    textures[180] = graphic.loadTexture("assets/player/idle180.png");
-    textures[-135] = graphic.loadTexture("assets/player/idle180.png");
-    textures[-90] = graphic.loadTexture("assets/player/idle-90.png");
-    textures[-45] = graphic.loadTexture("assets/player/idle0.png");
-
-    // Đặt sprite ban đầu
-    direction = 180;
-    currentTexture = textures[direction];
-}
-
-// Xử lý input từ bàn phím
-void Player::handleInputState(const Uint8* keystates) {
-    int newDirection = direction;
-    bool moving = false;
-
-    if (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W]) {
-        newDirection = 0; moving = true;
-    }
-    if (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S]) {
-        newDirection = 180; moving = true;
-    }
-    if (keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) {
-        newDirection = -90; moving = true;
-    }
-    if (keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) {
-        newDirection = 90; moving = true;
-    }
-    if ((keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) &&
-        (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W])) {
-        newDirection = -45;
-    }
-    if ((keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) &&
-        (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W])) {
-        newDirection = 45;
-    }
-    if ((keystates[SDL_SCANCODE_LEFT] || keystates[SDL_SCANCODE_A]) &&
-        (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S])) {
-        newDirection = -135;
-    }
-    if ((keystates[SDL_SCANCODE_RIGHT] || keystates[SDL_SCANCODE_D]) &&
-        (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S])) {
-        newDirection = 135;
-    }
-
-    if (textures.find(direction) != textures.end()) { 
-        currentTexture = textures[direction];
-    }
-
-    if (moving) {
-        direction = newDirection;
-        currentTexture = textures[direction];
-    }
-
-    if (!moving) {
-        joyX = 0; joyY = 0;
+    // If the player is not moving, reset to first costume
+    if (joyDist == 0) {
+        if (direction == 0) {
+            currentCostume = walkUp.getFirstCostume();
+        } else if (direction == 180) {
+            currentCostume = walkDown.getFirstCostume();
+        } else if (direction == -90) {
+            currentCostume = walkLeft.getFirstCostume();
+        } else if (direction == 90) {
+            currentCostume = walkRight.getFirstCostume();
+        }
     }
 }
 
-void Player::updateMovement() {
-    joyDist = sqrt(joyX * joyX + joyY * joyY);
-    
-    if (joyDist > 0) {
-        double normX = joyX / joyDist;
-        double normY = joyY / joyDist;
-        tryMove(normX * speed, normY * speed);
-    }
-}
-
+// Try to move
 void Player::tryMove(double dx, double dy) {
     x += dx;
     y += dy;
 }
 
-// Cập nhật trạng thái nhân vật (hoạt ảnh)
-void Player::update() {
-    //Debug
-    std::cout << "Player update - Current Texture: " << (currentTexture ? "OK" : "NULL") << std::endl;
+// Update player state
+void Player::update() {}
 
-    if (direction == 0) {
-        currentTexture = walkUp.getCurrentFrame();
-    } else if (direction == 180) {
-        currentTexture = walkDown.getCurrentFrame();
-    } else if (direction == -90) {
-        currentTexture = walkLeft.getCurrentFrame();
-    } else if (direction == 90) {
-        currentTexture = walkRight.getCurrentFrame();
+// Show player on screen (equivalent to Scratch's "show")
+void Player::show(Graphic& graphic) {
+    if (currentCostume) {
+        int width = (direction == 90 || direction == -90) ? ( PLAYER_WIDTH - 14 ) : PLAYER_WIDTH;
+        int height = (direction == 90 || direction == -90) ? PLAYER_HEIGHT : PLAYER_HEIGHT;
+        graphic.renderTexture(currentCostume, x, y, width , height );
+    } else {
+        std::cerr << "WARNING: currentCostume is NULL!\n";
     }
-}
-
-// Vẽ nhân vật lên màn hình
-void Player::render(Graphic& graphic) {
-    graphic.renderTexture(currentTexture, x, y, PLAYER_WIDTH, PLAYER_HEIGHT);
 }

@@ -2,7 +2,7 @@
 #include "Graphics_Rendering/Animation.h"
 
 // Constructor with frame delay (default 100ms)
-Animation::Animation(Uint32 delay) : currentFrame(0), frameDelay(delay), lastUpdate(0) {}
+Animation::Animation(Graphic& graphic, Uint32 delay) : graphic(graphic), currentFrame(0), frameDelay(delay), lastUpdate(0) {}
 
 // Destructor - Free memory for frames
 Animation::~Animation() {
@@ -16,12 +16,20 @@ void Animation::addCostume(SDL_Texture* texture) {
     }
 }
 
-void Animation::show(Graphic& graphic, int x, int y, int w, int h) {
+void Animation::show(Graphic& graphic, int x, int y, int maxWidth, int maxHeight) {
     if (frames.empty()) {
         std::cerr << "ERROR: No frames to show in animation!" << std::endl;
         return;
     }
-    graphic.renderTexture(frames[currentFrame], x, y, w, h);
+    graphic.renderTextureKeepRatio(frames[currentFrame], x, y, maxWidth, maxHeight);
+}
+
+void Animation::showBackground(SDL_Texture* texture, int x, int y) {
+    if (!texture) {
+        std::cerr << "ERROR: No background texture to show!" << std::endl;
+        return;
+    }
+    graphic.renderBackground(texture, x, y);
 }
 
 // Switch to a specific costume by index
@@ -53,9 +61,9 @@ SDL_Texture* Animation::getCurrentCostume() {
 }
 
 // Get the last frame of the animation (equivalent to "get costume N")
-SDL_Texture* Animation::getLastCostume(int index) {
+SDL_Texture* Animation::getLastCostume() {
     if (frames.empty()) return nullptr;
-    return frames[index];
+    return frames.back();
 }
 
 // Update frame based on time
@@ -75,8 +83,27 @@ void Animation::clear() {
     frames.clear();
 }
 
-// Resize image (not implemented yet)
+// Resize image
 void Animation::setSize(int scale) {
-    // SDL_Texture does not support direct resizing
-    // Additional code is needed to implement this
+    if (frames.empty()) {
+        std::cerr << "ERROR: No frames to set size!" << std::endl;
+        return;
+    }
+
+    float factor = scale / 100.0f;
+    m_scale = scale;
+
+    for (SDL_Texture*& frame : frames) {
+        int origW, origH;
+        if (SDL_QueryTexture(frame, nullptr, nullptr, &origW, &origH) != 0) {
+            std::cerr << "ERROR: Cannot query texture: " << SDL_GetError() << std::endl;
+            continue;
+        }
+
+        int newW = static_cast<int>(origW * factor);
+        int newH = static_cast<int>(origH * factor);
+
+        m_maxWidth = std::max(m_maxWidth, newW);
+        m_maxHeight = std::max(m_maxHeight, newH);
+    }
 }

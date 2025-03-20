@@ -1,0 +1,26 @@
+1. Core System (Hệ thống cốt lõi)
+Game.h → Điều khiển vòng lặp game, cập nhật và render.
+Config.h → Chứa các hằng số, cấu hình chung (FPS, độ phân giải, tốc độ di chuyển, v.v.).
+Utils.h → Các hàm tiện ích như random số, chuyển đổi dữ liệu.
+2. Graphics & Rendering (Đồ họa & Hiển thị)
+TextureManager.h → Quản lý load và vẽ hình ảnh.
+Animation.h → Hỗ trợ vẽ và điều khiển animation nhân vật.
+GUI.h → Xây dựng giao diện người chơi (thanh máu, menu, hộp thoại).
+3. Entities (Thực thể trong game)
+Character.h → Lớp cơ sở cho nhân vật (HP, MP, animation, v.v.).
+Player.h → Nhân vật người chơi kế thừa từ Character.
+Enemy.h → Kẻ địch với AI cơ bản.
+NPC.h → Nhân vật không điều khiển được (có đối thoại).
+Item.h → Hệ thống vật phẩm.
+Inventory.h → Quản lý kho đồ của người chơi.
+4. Map & World (Bản đồ & Thế giới)
+Tilemap.h → Hệ thống bản đồ ô vuông (tiled map).
+World.h → Quản lý môi trường game.
+Collision.h → Xử lý va chạm nhân vật, tường, vật thể.
+5. Combat & Mechanics (Chiến đấu & Cơ chế game)
+BattleSystem.h → Hệ thống chiến đấu (turn-based hoặc real-time).
+Skill.h → Quản lý kỹ năng nhân vật.
+AI.h → Trí tuệ nhân tạo cho kẻ địch.
+6. Sound & Effects (Âm thanh & Hiệu ứng)
+AudioManager.h → Quản lý âm thanh, nhạc nền.
+ParticleSystem.h → Hiệu ứng đặc biệt (lửa, khói, ánh sáng).

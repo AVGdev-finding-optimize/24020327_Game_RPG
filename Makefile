@@ -1,6 +1,6 @@
 # Compiler và flags
 CXX := g++
-INCLUDE_FLAGS := -Iinclude -Iinclude/SDL2 -Iinclude/lSDL2_mixer -Iinclude/lSDL2_ttf -Iinclude/SDL2_image -Iinclude/Core_System -Iinclude/Graphics_Rendering
+INCLUDE_FLAGS := -Iinclude -Iinclude/SDL2 -Iinclude/lSDL2_mixer -Iinclude/lSDL2_ttf -Iinclude/SDL2_image -Iinclude/Core_System -Iinclude/Graphics_Rendering -Iinclude/Entities -Iinclude/Map
 CXXFLAGS := $(INCLUDE_FLAGS) -Wall -g -Dmain=SDL_main
 LDFLAGS := -Llib -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_mixer -lSDL2_ttf -mwindows
 
@@ -9,7 +9,7 @@ SRC_DIR := src
 BUILD_DIR := build
 
 # Danh sách file
-SRC_FILES := src/Entities/Player.cpp src/Core_System/Game.cpp src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/main.cpp
+SRC_FILES := src/Entities/Player.cpp src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/Map/Map.cpp src/Core_System/Game.cpp src/main.cpp
 OBJ_FILES := $(patsubst src/%.cpp, build/%.o, $(SRC_FILES))
 
 # File thực thi

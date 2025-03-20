@@ -1,16 +1,14 @@
 #include "Core_System/Game.h"
-#include <iostream>
-
 #define SDL_MAIN_HANDLED
-#include <SDL2/SDL.h>
+
 
 Uint32 frameStart;
 int frameTime;
 
 // Constructor
-Game::Game() : player(graphic) {
+Game::Game() : player(graphic), gameMap(graphic), camX(0), camY(0) {
     isRunning = false;
-    currentCostume = nullptr;  // Initialize currentCostume
+    currentCostume = nullptr;
 }
 
 // Destructor
@@ -29,24 +27,42 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
 
     std::cout << "SDL Initialized!\n";
 
-    // Load background as an animation object
     SDL_Texture* bgTexture = graphic.loadTexture(BACKGROUND_PATH);
     if (!bgTexture) {
         std::cerr << "Error loading background" << std::endl;
         return false;
     }
     
-    background.addCostume(bgTexture);  
-    currentCostume = bgTexture;  // Set currentCostume to background texture
+    // Load background and tiles
+    gameMap.loadBackground(graphic, BACKGROUND_PATH);
+    loadAllTiles();
+    gameMap.switchBackground(0);
 
     std::cout << "Background loaded!\n";
     
     // Initialize the player
     player.startAsClone(graphic);
     std::cout << "Player initialized!\n";
-    
+
+    camX = 0;
+    camY = 0;
+
     isRunning = true;
     return true;
+}
+
+// Load all tiles from file
+void Game::loadAllTiles() {
+    std::ifstream file("assets/tiles/TITLES.txt");
+    std::vector<std::string> tilePaths;
+    std::string line;
+
+    while (std::getline(file, line)) {
+        tilePaths.push_back(line);
+    }
+
+    file.close();
+    gameMap.loadTileset(graphic, tilePaths);
 }
 
 // Main game loop (Scratch: "forever loop")
@@ -55,6 +71,7 @@ void Game::foreverLoop() {
     while (isRunning) {
         frameStart = SDL_GetTicks();
 
+        updateCamera(player.getX(), player.getY()); // Update camera position
         whenKeyPressed(); // Handle inputs
         updateGame();      // Update game logic
         show();           // Render graphics
@@ -80,7 +97,26 @@ void Game::whenKeyPressed() {
     player.handleInputState(keystates);
 }
 
-// Update game logic (Scratch: "when I receive")
+// Camera
+void Game::updateCamera(int playerX, int playerY) {
+    camX = player.getX() - (WINDOW_WIDTH / 2);
+    camY = player.getY() - (WINDOW_HEIGHT / 2);
+
+    if (playerX < camX + WINDOW_WIDTH / 2 - CAMERA_MARGIN_X) {
+        camX = playerX - (WINDOW_WIDTH / 2 - CAMERA_MARGIN_X);
+    }
+    if (playerX > camX + WINDOW_WIDTH / 2 + CAMERA_MARGIN_X) {
+        camX = playerX - (WINDOW_WIDTH / 2 + CAMERA_MARGIN_X);
+    }
+    if (playerY < camY + WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y) {
+        camY = playerY - (WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y);
+    }
+    if (playerY > camY + WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y) {
+        camX = playerY - (WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y);
+    }
+}
+
+// Update game logic 
 void Game::updateGame() {
     if (!isRunning) return;  // Exit early if the game is not running
 
@@ -99,12 +135,11 @@ void Game::updateGame() {
     }
 }
 
-
 // Render game objects (Scratch: "show")
 void Game::show() {
     graphic.prepareScene();
-    background.show(graphic, 0, 0, WINDOW_WIDTH, WINDOW_HEIGHT); // Render background using animation
-    player.show(graphic);
+    gameMap.show(graphic, - camX, - camY);
+    player.show(graphic, player.getX() - camX, player.getY() - camY);
     graphic.presentScene();
 }
 

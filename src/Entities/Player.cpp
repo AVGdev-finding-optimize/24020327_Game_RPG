@@ -1,9 +1,8 @@
 #include "Entities/Player.h"
-#include <iostream>
-#include <cmath>
+#include "Core_System/Game.h"
 
 // Constructor
-Player::Player(Graphic& graphic) {
+Player::Player(Graphic& graphic): walkUp(graphic, 100), walkDown(graphic, 100), walkLeft(graphic, 100), walkRight(graphic, 100) {
     x = WINDOW_WIDTH / 2;
     y = WINDOW_HEIGHT / 2;
     speed = PLAYER_SPEED;
@@ -139,12 +138,14 @@ void Player::tryMove(double dx, double dy) {
 void Player::update() {}
 
 // Show player on screen (equivalent to Scratch's "show")
-void Player::show(Graphic& graphic) {
-    if (currentCostume) {
-        int width = (direction == 90 || direction == -90) ? ( PLAYER_WIDTH - 14 ) : PLAYER_WIDTH;
-        int height = (direction == 90 || direction == -90) ? PLAYER_HEIGHT : PLAYER_HEIGHT;
-        graphic.renderTexture(currentCostume, x, y, width , height );
-    } else {
+void Player::show(Graphic& graphic, int camX, int camY) {
+    if (!getCurrentCostume()) {
         std::cerr << "WARNING: currentCostume is NULL!\n";
+        return;
     }
+
+    int screenX = static_cast<int>(x - camX);
+    int screenY = static_cast<int>(y - camY);
+
+    graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, screenY, PLAYER_MAX_WIDTH, PLAYER_MAX_HEIGHT);
 }

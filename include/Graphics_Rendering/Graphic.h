@@ -3,7 +3,11 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2_image/SDL_image.h>
+#include <cmath>
+#include <algorithm>
 #include <iostream>
+#include <string>
+#include "Core_System/Const.h"
 
 class Graphic {
 private:
@@ -16,8 +20,8 @@ public:
 
     bool initSDL(int width, int height, const char* title);
     SDL_Texture* loadTexture(const std::string& filePath);
-    void renderTexture(SDL_Texture* texture, int x, int y, int w, int h);
-    
+    void renderTextureKeepRatio(SDL_Texture* texture, int x, int y, int maxWidth, int maxHeight);
+    void renderBackground(SDL_Texture* texture, int x, int y);
     void prepareScene();
     void presentScene();
 

@@ -53,14 +53,54 @@ SDL_Texture* Graphic::loadTexture(const std::string& filePath) {
     return texture;
 }
 
-// Render texture lên màn hình
-void Graphic::renderTexture(SDL_Texture* texture, int x, int y, int w, int h) {
-    if (!texture) return;
-    SDL_Rect dst = { x, y, w, h };
-    SDL_RenderCopy(renderer, texture, nullptr, &dst);
+// Render texture to screen with aspect ratio
+void Graphic::renderTextureKeepRatio(SDL_Texture* texture, int x, int y, int maxWidth, int maxHeight) {
+    if (!texture) {
+        std::cerr << "ERROR: Texture is NULL!" << std::endl;
+        return;
+    }
+
+    int originalW, originalH;
+    if (SDL_QueryTexture(texture, nullptr, nullptr, &originalW, &originalH) != 0) {
+        std::cerr << "ERROR: Cannot query texture: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    if (maxWidth == 0) maxWidth = originalW;
+    if (maxHeight == 0) maxHeight = originalH;
+
+    float scaleFactor = std::min((float)maxWidth / originalW, (float)maxHeight / originalH);
+
+    int newW = static_cast<int>(originalW * scaleFactor);
+    int newH = static_cast<int>(originalH * scaleFactor);
+
+    SDL_Rect dstRect = { x, y, newW, newH };
+    
+    SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
 }
 
-// Xóa màn hình trước khi render frame mới
+// Render background
+void Graphic::renderBackground(SDL_Texture* texture, int x, int y) {
+    if (!texture) {
+        std::cerr << "ERROR: Background texture is NULL!" << std::endl;
+        return;
+    }
+
+    int originalW, originalH;
+    if (SDL_QueryTexture(texture, nullptr, nullptr, &originalW, &originalH) != 0) {
+        std::cerr << "ERROR: Cannot query texture: " << SDL_GetError() << std::endl;
+        return;
+    }
+
+    int scaledW = originalW * 2;
+    int scaledH = originalH * 2;
+
+    SDL_Rect dstRect = { x, y, scaledW, scaledH };
+
+    SDL_RenderCopy(renderer, texture, nullptr, &dstRect);
+}
+
+// Clear screen before rendering
 void Graphic::prepareScene() {
     SDL_RenderClear(renderer);
 }

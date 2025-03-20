@@ -2,6 +2,8 @@
 #define PLAYER_H
 
 #include <SDL2/SDL.h>
+#include <iostream>
+#include <cmath>
 #include "Graphics_Rendering/Graphic.h"
 #include "Graphics_Rendering/Animation.h"
 #include "Core_System/Const.h"
@@ -21,13 +23,12 @@ public:
     ~Player();
 
     void startAsClone(Graphic &graphic); // Initialize player (equivalent to Scratch's "start as a clone")
-    void switchCostume(Graphic &graphic); // Load player sprites (equivalent to Scratch's "switch costume")
     void handleInputState(const Uint8* keystates); // Process input
     void moveSteps(); // Move according to direction (equivalent to "move steps")
     void tryMove(double dx, double dy); // Try to move
     void updateMovement(); // Update position
     void update(); // Update state (animations)
-    void show(Graphic& graphic); // Render player (equivalent to "show")
+    void show(Graphic& graphic, int camX, int camY); // Render player (equivalent to "show")
     SDL_Texture* getCurrentCostume() const; // Get current costume
 
     int getX() const { return x; }

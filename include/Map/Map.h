@@ -4,6 +4,8 @@
 #include <vector>
 #include <string>
 #include <SDL2/SDL.h>
+#include <fstream>
+#include <sstream>
 #include "Graphics_Rendering/Graphic.h"
 #include "Graphics_Rendering/Animation.h"
 #include "Core_System/Const.h"
@@ -21,10 +23,15 @@ public:
     Map(Graphic& graphic);
     ~Map();
 
+    int getMapWidth() const { return mapWidth; }
+    int getMapHeight() const { return mapHeight; }
+    int getTileSize() const { return tileSize; }
+
     void loadBackground(Graphic& graphic, const std::string& path);
     void switchBackground(int index);
     void loadTileset(Graphic& graphic, const std::vector<std::string>& tilePaths);
-    void setMapLayout(const std::vector<std::vector<int>>& layout);
+    void showTiles(Graphic& graphic, int camX, int camY);
+    void setMapLayoutFromFile(const std::string& filename);
     void show(Graphic& graphic, int x, int y);
 };
 

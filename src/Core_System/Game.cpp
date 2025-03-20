@@ -37,6 +37,7 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
     gameMap.loadBackground(graphic, BACKGROUND_PATH);
     loadAllTiles();
     gameMap.switchBackground(0);
+    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH);
 
     std::cout << "Background loaded!\n";
     
@@ -138,7 +139,8 @@ void Game::updateGame() {
 // Render game objects (Scratch: "show")
 void Game::show() {
     graphic.prepareScene();
-    gameMap.show(graphic, - camX, - camY);
+    gameMap.show(graphic, -128 - camX % 64, -128 - camY % 64);
+    gameMap.showTiles(graphic, 0 - camX, 0 - camY);
     player.show(graphic, player.getX() - camX, player.getY() - camY);
     graphic.presentScene();
 }

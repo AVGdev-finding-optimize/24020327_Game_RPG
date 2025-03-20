@@ -10,6 +10,7 @@ const char* WINDOW_TITLE = "RPG Game";
 const char* BACKGROUND_PATH = "assets/background/Grass.png";
 const char* ROOM_PATH = "assets/player/Room.png";
 const char* PLAYER_SPRITE_PATH = "assets/player/idle.png";
+const char* VILLAGE_MAP_PATH = "assets/map/village.txt";
 
 // Cấu hình nhân vật
 const int PLAYER_SPEED = 4;

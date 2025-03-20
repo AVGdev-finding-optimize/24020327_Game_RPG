@@ -21,6 +21,7 @@ const std::string WINDOW_TITLE = "RPG Game";
 const std::string BACKGROUND_PATH = "assets/background/Grass.png";
 const std::string ROOM_PATH = "assets/player/Room.png";
 const std::string PLAYER_SPRITE_PATH = "assets/player/idle.png";
+const std::string VILLAGE_MAP_PATH = "assets/map/village.txt";
 
 // Tốc độ di chuyển của nhân vật
 constexpr int PLAYER_SPEED = 4;

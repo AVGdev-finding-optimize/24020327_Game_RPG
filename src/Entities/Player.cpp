@@ -26,7 +26,7 @@ Player::~Player() {
 
 // Initialize player textures (equivalent to Scratch's "start as a clone")
 void Player::startAsClone(Graphic& graphic) {
-    std::cout << "Loading player costumes...\n";
+    std::cout << "Loading player costumes...\n"; 
     
     // Set default idle sprites
     walkUp.addCostume(graphic.loadTexture("assets/player/idle0.png"));
@@ -45,6 +45,10 @@ void Player::startAsClone(Graphic& graphic) {
         walkLeft.addCostume(graphic.loadTexture("assets/player/walk-90." + std::to_string(i) + ".png"));
         walkRight.addCostume(graphic.loadTexture("assets/player/walk90." + std::to_string(i) + ".png"));
     }
+    walkDown.setSize(1000);
+    walkUp.setSize(1000);
+    walkLeft.setSize(1000);
+    walkRight.setSize(1000);
 }
 
 SDL_Texture* Player::getCurrentCostume() const {
@@ -144,8 +148,11 @@ void Player::show(Graphic& graphic, int camX, int camY) {
         return;
     }
 
-    int screenX = static_cast<int>(x - camX);
-    int screenY = static_cast<int>(y - camY);
+    /* int screenX = static_cast<int>(x - camX);
+    int screenY = static_cast<int>(y - camY); */
+
+    int screenX = WINDOW_WIDTH / 2;
+    int screenY = WINDOW_HEIGHT / 2;
 
     graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, screenY, PLAYER_MAX_WIDTH, PLAYER_MAX_HEIGHT);
 }

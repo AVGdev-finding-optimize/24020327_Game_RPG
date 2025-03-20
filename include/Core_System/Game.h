@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include "Graphics_Rendering/Graphic.h"
 #include "Graphics_Rendering/Animation.h"

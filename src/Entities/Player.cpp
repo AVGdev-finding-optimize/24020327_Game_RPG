@@ -1,10 +1,16 @@
 #include "Entities/Player.h"
 #include "Core_System/Game.h"
 
+int clamp(int value, int min, int max) {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}
+
 // Constructor
 Player::Player(Graphic& graphic): walkUp(graphic, 100), walkDown(graphic, 100), walkLeft(graphic, 100), walkRight(graphic, 100) {
-    x = WINDOW_WIDTH / 2 - 10;
-    y = WINDOW_HEIGHT / 2 - 16;
+    x = WINDOW_WIDTH;
+    y = WINDOW_HEIGHT;
     speed = PLAYER_SPEED;
     joyX = 0;
     joyY = 0;
@@ -78,22 +84,47 @@ void Player::handleInputState(const Uint8* keystates) {
     }
 }
 
-void Player::moveSteps() {
-    if ( joyDist > 0 ) {
-        updateMovement();
+void Player::moveSteps(int camX, int camY) {
+    if (joyDist > 0) {
+        updateMovement(camX, camY);
     }
 }
 
 // Update movement logic
-void Player::updateMovement() {
+void Player::updateMovement(int camX, int camY) {
     if (joyDist > 1) {
         joyDist = sqrt(2); // Normalize diagonal movement speed
     }
     joyX /= joyDist;
     joyY /= joyDist;
-    tryMove(joyX * speed, joyY * speed);
-    
-    // Change costume based on direction
+
+    int textureW, textureH;
+    if (SDL_QueryTexture(getCurrentCostume(), nullptr, nullptr, &textureW, &textureH) != 0) {
+        textureH = 0; 
+    }
+    int playerHeight = textureH * UPSCALE;
+    int playerWidth = textureW * UPSCALE;
+
+    bool camLockedX = (camX <= 32 || camX + WINDOW_WIDTH >= mapWidth * tileSize * UPSCALE);
+    bool camLockedY = (camY <= 32 || camY + WINDOW_HEIGHT >= mapHeight * tileSize * UPSCALE);
+
+    if (!camLockedX) {
+        x += joyX * speed;
+        screenX = WINDOW_WIDTH / 2;  // Nhân vật luôn ở giữa màn hình
+    } else {
+        screenX = clamp(screenX + joyX * speed, 0, WINDOW_WIDTH - playerWidth);
+        x += joyX * speed;
+    }
+
+    if (!camLockedY) {
+        y += joyY * speed;
+        screenY = WINDOW_HEIGHT / 2;
+    } else {
+        screenY = clamp(screenY + joyY * speed, 0, WINDOW_HEIGHT - playerHeight);
+        y += joyY * speed;
+    }
+
+    // Thay đổi animation theo hướng di chuyển
     if (joyX < 0) {
         direction = -90;
         currentCostume = walkLeft.getCurrentCostume();
@@ -108,13 +139,12 @@ void Player::updateMovement() {
         currentCostume = walkDown.getCurrentCostume();
     }
 
-    // Animate movement
+    // Xử lý animation
     Uint32 currentTime = SDL_GetTicks();
     if (joyDist > 0) {
-        if (currentTime - lastFrameTime >= 100) { // Change frame every 0.3s
+        if (currentTime - lastFrameTime >= 100) { 
             lastFrameTime = currentTime;
 
-            // Switch animation frames
             if (direction == 0) {
                 walkUp.nextCostume();
                 currentCostume = walkUp.getCurrentCostume();
@@ -141,23 +171,28 @@ void Player::tryMove(double dx, double dy) {
 // Update player state
 void Player::update() {}
 
-// Show player on screen (equivalent to Scratch's "show")
-void Player::show(Graphic& graphic, int camX, int camY) {
-    if (!getCurrentCostume()) {
-        std::cerr << "WARNING: currentCostume is NULL! (message from player)\n";
-        return;
-    }
+void Player::dataCollect(int gameMapHeight, int gameMapWidth, int tile_Size) {
+    mapWidth = gameMapWidth;
+    mapHeight = gameMapHeight;
+    tileSize = tile_Size;
+}
 
-    // Lấy kích thước thực tế của sprite
+void Player::show(Graphic& graphic) {
+    if (!getCurrentCostume()) return;
+
     int textureW, textureH;
     if (SDL_QueryTexture(getCurrentCostume(), nullptr, nullptr, &textureW, &textureH) != 0) {
-        std::cerr << "ERROR: Cannot query texture (message from player): " << SDL_GetError() << std::endl;
         return;
     }
 
-    int footY = (WINDOW_HEIGHT / 2);  
-    int screenX = WINDOW_WIDTH / 2;
-    int screenY = footY - textureH * UPSCALE; 
+    int spriteHeight = textureH * UPSCALE;
+    int footY = screenY + interpolatedHeight;
+    int adjustedScreenY = footY - spriteHeight;
 
-    graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, screenY, UPSCALE);
+    graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, adjustedScreenY, UPSCALE);
+
+    float smoothingFactor = 0.2f;
+    interpolatedHeight = interpolatedHeight * (1.0f - smoothingFactor) + spriteHeight * smoothingFactor;
+
+    oldSpriteHeight = spriteHeight;
 }

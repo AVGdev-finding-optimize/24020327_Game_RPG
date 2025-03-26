@@ -26,12 +26,11 @@ public:
     
     // Camera and scrolling system
     int camX, camY; // Camera position
-
-    // Infinite scrolling background
-    void scrollBackground(int speedX, int speedY);
-
-    // Tile System & Level Map
+    int getGameWidth() const { return gameMap.getMapHeight(); }
+    int getGameHeight() const { return gameMap.getMapWidth(); }
+    int getGameTileSize() const { return gameMap.getTileSize(); }
     
+    // Tile System & Level Map
     void loadAllTiles(Graphic& graphic); // Load all tiles from file
 
     // Game loop

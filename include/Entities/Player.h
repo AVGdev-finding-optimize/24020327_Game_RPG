@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "Graphics_Rendering/Graphic.h"
 #include "Graphics_Rendering/Animation.h"
 #include "Core_System/Const.h"
@@ -12,11 +13,15 @@ class Player {
 private:
     double x, y;               // Player position
     double joyX, joyY, joyDist;// Movement direction
+    int screenX, screenY;
     int speed;                 // Movement speed
     int direction;             // Movement direction
     SDL_Texture* currentCostume; // Current costume
     Animation walkUp, walkDown, walkLeft, walkRight; // Movement animations
     Uint32 lastFrameTime;     // Last frame time
+    int mapWidth, mapHeight, tileSize; // Map dimensions
+    int oldSpriteHeight = 0;
+    int interpolatedHeight = 0;
 
 public:
     Player(Graphic& graphic);
@@ -24,15 +29,19 @@ public:
 
     void startAsClone(Graphic &graphic); // Initialize player (equivalent to Scratch's "start as a clone")
     void handleInputState(const Uint8* keystates); // Process input
-    void moveSteps(); // Move according to direction (equivalent to "move steps")
+    void moveSteps(int camX, int camY); // Move according to direction (equivalent to "move steps")
     void tryMove(double dx, double dy); // Try to move
-    void updateMovement(); // Update position
+    void updateMovement(int camX, int camY); // Update position
     void update(); // Update state (animations)
-    void show(Graphic& graphic, int camX, int camY); // Render player (equivalent to "show")
+    void dataCollect(int gameMapHeight, int gameMapWidth, int tile_Size); // Collect data from game
+    void show(Graphic& graphic); // Render player (equivalent to "show")
     SDL_Texture* getCurrentCostume() const; // Get current costume
 
-    int getX() const { return x; }
-    int getY() const { return y; }
+    void setScreenX(int sx) { screenX = sx; }
+    void setScreenY(int sy) { screenY = sy; }
+    double getX() const { return x; }
+    double getY() const { return y; }
+
 };
 
 #endif

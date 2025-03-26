@@ -144,16 +144,23 @@ void Game::updateCamera(int playerX, int playerY) {
         camY = playerY - (WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y);
     }
     if (playerY > camY + WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y) {
-        camX = playerY - (WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y);
+        camY = playerY - (WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y);
     }
+
+    if (camX < 0) camX = 0;
+    if (camY < 0) camY = 0;
+    if (camX + WINDOW_WIDTH > gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE) 
+        camX = gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE - WINDOW_WIDTH;
+    if (camY + WINDOW_HEIGHT > gameMap.getMapHeight() * gameMap.getTileSize() * UPSCALE) 
+        camY = gameMap.getMapHeight() * gameMap.getTileSize() * UPSCALE - WINDOW_HEIGHT;
 }
 
 // Update game logic 
 void Game::updateGame() {
     if (!isRunning) return;  // Exit early if the game is not running
-
+    updateCamera(player.getX(), player.getY());
     player.update();       // Update player logic
-    player.moveSteps();    // Process player movement
+    player.moveSteps(camX, camY);    // Process player movement
 
     // Optimized Debugging: Only log once when texture becomes NULL
     static bool wasNull = false; // Track previous texture state
@@ -171,7 +178,8 @@ void Game::updateGame() {
 void Game::show() {
     graphic.prepareScene();
     gameMap.show(graphic, -128 - camX % 64, -128 - camY % 64);
-    player.show(graphic, player.getX() - camX, player.getY() - camY);
+    player.dataCollect(gameMap.getMapHeight(), gameMap.getMapWidth(), gameMap.getTileSize());
+    player.show(graphic);
     /* gameMap.showTiles(graphic, 0 - camX, 0 - camY); */
     std::cout << "Calling showTiles - ";
     gameMap.showTiles(graphic, camX, camY);

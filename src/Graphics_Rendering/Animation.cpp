@@ -49,6 +49,12 @@ void Animation::nextCostume() {
     }
 }
 
+void Animation::previousCostume() {
+    if (!frames.empty()) {
+        currentFrame = (currentFrame - 1 + frames.size()) % frames.size();
+    }
+}
+
 // Get the first frame of the animation (equivalent to "get first costume")
 SDL_Texture* Animation::getFirstCostume() {
     if (frames.empty()) return nullptr;

@@ -22,6 +22,7 @@ public:
 
     void addCostume(SDL_Texture* texture);  // Add a new costume
     void nextCostume(); // Change to the next frame
+    void previousCostume();
     void switchCostume(int costumeIndex);   // Switch to a different costume
     void show(Graphic& graphic, int x, int y); // Render the current frame
     void showBackground(SDL_Texture* texture, int x, int y); // Render the background

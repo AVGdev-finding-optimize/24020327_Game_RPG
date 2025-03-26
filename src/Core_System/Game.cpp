@@ -16,35 +16,45 @@ Game::~Game() {
     stopAll();
 }
 
-// Initialize the game (Scratch: "when Green Flag clicked")
+// Initialize the game
 bool Game::initSDL(const char* title, int x, int y, int width, int height, bool fullscreen) {
-    std::cout << "Initializing SDL...\n";
+    std::cout << "Initializing SDL... (message from game)\n";
 
     if (!graphic.initSDL(width, height, title)) {
-        std::cerr << "Error initializing SDL" << std::endl;
+        std::cerr << "Error initializing SDL (message from game)" << std::endl;
         return false;
     }
 
-    std::cout << "SDL Initialized!\n";
-
-    SDL_Texture* bgTexture = graphic.loadTexture(BACKGROUND_PATH);
-    if (!bgTexture) {
-        std::cerr << "Error loading background" << std::endl;
+    if (!graphic.getRenderer()) {
+        std::cerr << "ERROR: Renderer is NULL after graphic.initSDL()! (message from game)\n";
         return false;
     }
-    
-    // Load background and tiles
+
+    std::cout << "SDL Initialized successfully! (message from game)\n";
+
+    // Load background
+    if (!gameMap.loadBackground(graphic, BACKGROUND_PATH)) {
+        std::cerr << "ERROR: Failed to load background (message from game)" << std::endl;
+        return false;
+    }
     gameMap.loadBackground(graphic, BACKGROUND_PATH);
-    loadAllTiles();
     gameMap.switchBackground(0);
-    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH);
-
-    std::cout << "Background loaded!\n";
+    std::cout << "Background loaded! (message from game)\n";
     
     // Initialize the player
+    if (!graphic.getRenderer()) {
+        std::cerr << "ERROR: Renderer is NULL before loading player! (message from game)\n";
+        return false;
+    }
     player.startAsClone(graphic);
-    std::cout << "Player initialized!\n";
+    std::cout << "Player initialized! (message from game)\n";
 
+    // Load all tiles
+    loadAllTiles(graphic);
+    std::cout << "Tiles loaded! (message from game)\n";
+    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH); // Load map layout from file
+    std::cout << "Map layout loaded! (message from game)\n";
+    
     camX = 0;
     camY = 0;
 
@@ -53,22 +63,43 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
 }
 
 // Load all tiles from file
-void Game::loadAllTiles() {
-    std::ifstream file("assets/tiles/TITLES.txt");
-    std::vector<std::string> tilePaths;
-    std::string line;
+void Game::loadAllTiles(Graphic& graphic) { 
+    std::ifstream file("D:/CODE/RPG_GAME/assets/tiles/paths.txt"); 
 
-    while (std::getline(file, line)) {
-        tilePaths.push_back(line);
-    }
+    if (!file.is_open()) { 
+        std::cerr << "Can't open file  paths.txt! (message from game)\n"; 
+        return; 
+    } 
 
-    file.close();
-    gameMap.loadTileset(graphic, tilePaths);
+    std::vector<std::string> tilePaths; 
+    std::string line; 
+
+    std::cerr << "Loading tiles... (message from game)\n"; 
+
+    while (std::getline(file, line)) { 
+        if (!line.empty()) {
+            line.erase(std::remove_if(line.begin(), line.end(), ::isspace), line.end());
+            tilePaths.push_back(line);
+        }
+    }    
+
+    file.close(); 
+
+    // Kiểm tra có load được tiles không
+    if (tilePaths.empty()) { 
+        std::cerr << "File paths.txt empty or invalid! (message from game)\n"; 
+        return; 
+    } 
+
+    gameMap.loadTileset(graphic, tilePaths); 
+
+    std::cerr << "🎉 Tiles loaded! Total of tiles: " << tilePaths.size() << " (message from game)" << std::endl; 
 }
 
 // Main game loop (Scratch: "forever loop")
 void Game::foreverLoop() {
-    std::cout << "Game is running...\n";
+    std::cout << "Game is running... (message from game)\n";
+    
     while (isRunning) {
         frameStart = SDL_GetTicks();
 
@@ -128,7 +159,7 @@ void Game::updateGame() {
     static bool wasNull = false; // Track previous texture state
     if (!player.getCurrentCostume()) {  // Use getter function
         if (!wasNull) {  // Log only when texture first turns NULL
-            std::cerr << "[WARNING] Player texture is NULL!\n";
+            std::cerr << "[WARNING] Player texture is NULL! (message from game)\n";
             wasNull = true;
         }
     } else {
@@ -140,12 +171,16 @@ void Game::updateGame() {
 void Game::show() {
     graphic.prepareScene();
     gameMap.show(graphic, -128 - camX % 64, -128 - camY % 64);
-    gameMap.showTiles(graphic, 0 - camX, 0 - camY);
     player.show(graphic, player.getX() - camX, player.getY() - camY);
+    /* gameMap.showTiles(graphic, 0 - camX, 0 - camY); */
+    std::cout << "Calling showTiles - ";
+    gameMap.showTiles(graphic, camX, camY);
+    std::cout << "Finished (message from game)" << std::endl;
+
     graphic.presentScene();
 }
 
 // Cleanup resources (Scratch: "stop all")
 void Game::stopAll() {
-    std::cout << "Cleaning up game...\n";
+    std::cout << "Cleaning up game... (message from game)\n";
 }

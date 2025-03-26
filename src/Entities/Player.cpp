@@ -3,8 +3,8 @@
 
 // Constructor
 Player::Player(Graphic& graphic): walkUp(graphic, 100), walkDown(graphic, 100), walkLeft(graphic, 100), walkRight(graphic, 100) {
-    x = WINDOW_WIDTH / 2;
-    y = WINDOW_HEIGHT / 2;
+    x = WINDOW_WIDTH / 2 - 10;
+    y = WINDOW_HEIGHT / 2 - 16;
     speed = PLAYER_SPEED;
     joyX = 0;
     joyY = 0;
@@ -20,19 +20,23 @@ Player::~Player() {
     if (currentCostume) {
         SDL_DestroyTexture(currentCostume);
         currentCostume = nullptr;
-        std::cout << "Player costume destroyed!\n";
+        std::cout << "Player costume destroyed! (message from player)\n";
     }
 }
 
 // Initialize player textures (equivalent to Scratch's "start as a clone")
 void Player::startAsClone(Graphic& graphic) {
-    std::cout << "Loading player costumes...\n"; 
+    if (!graphic.getRenderer()) {
+        std::cerr << "ERROR: Renderer is NULL! Cannot load player textures. (message from player)" << std::endl;
+        return;
+    }
+    std::cout << "Loading player costumes... (message from player)\n"; 
     
     // Set default idle sprites
-    walkUp.addCostume(graphic.loadTexture("assets/player/idle0.png"));
-    walkDown.addCostume(graphic.loadTexture("assets/player/idle180.png"));
-    walkLeft.addCostume(graphic.loadTexture("assets/player/idle-90.png"));
-    walkRight.addCostume(graphic.loadTexture("assets/player/idle90.png"));
+    walkUp.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/idle0.png"));
+    walkDown.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/idle180.png"));
+    walkLeft.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/idle-90.png"));
+    walkRight.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/idle90.png"));
 
     // Set default costume to first frame of walkDown
     currentCostume = walkDown.getCurrentCostume();
@@ -40,15 +44,12 @@ void Player::startAsClone(Graphic& graphic) {
 
     // Load walking animation frames
     for (int i = 1; i <= 5; i++) {
-        walkUp.addCostume(graphic.loadTexture("assets/player/walk0." + std::to_string(i) + ".png"));
-        walkDown.addCostume(graphic.loadTexture("assets/player/walk180." + std::to_string(i) + ".png"));
-        walkLeft.addCostume(graphic.loadTexture("assets/player/walk-90." + std::to_string(i) + ".png"));
-        walkRight.addCostume(graphic.loadTexture("assets/player/walk90." + std::to_string(i) + ".png"));
+        walkUp.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/walk0." + std::to_string(i) + ".png"));
+        walkDown.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/walk180." + std::to_string(i) + ".png"));
+        walkLeft.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/walk-90." + std::to_string(i) + ".png"));
+        walkRight.addCostume(graphic.loadTexture("D:/CODE/RPG_GAME/assets/player/walk90." + std::to_string(i) + ".png"));
     }
-    walkDown.setSize(1000);
-    walkUp.setSize(1000);
-    walkLeft.setSize(1000);
-    walkRight.setSize(1000);
+    
 }
 
 SDL_Texture* Player::getCurrentCostume() const {
@@ -62,11 +63,23 @@ void Player::handleInputState(const Uint8* keystates) {
     joyY = (keystates[SDL_SCANCODE_DOWN] || keystates[SDL_SCANCODE_S]) - 
            (keystates[SDL_SCANCODE_UP] || keystates[SDL_SCANCODE_W]);
     joyDist = sqrt(joyX * joyX + joyY * joyY);
+    
+    bool noKeyPressed = (joyX == 0 && joyY == 0);
+    if (noKeyPressed) {
+        if (direction == 0) {
+            currentCostume = walkUp.getFirstCostume();
+            } else if (direction == 180) {
+                currentCostume = walkDown.getFirstCostume();
+            } else if (direction == -90) {
+                currentCostume = walkLeft.getFirstCostume();
+            } else if (direction == 90) {
+                currentCostume = walkRight.getFirstCostume();
+        }
+    }
 }
 
-// Move player (equivalent to Scratch's "move steps")
 void Player::moveSteps() {
-    if (joyDist > 0) {
+    if ( joyDist > 0 ) {
         updateMovement();
     }
 }
@@ -79,7 +92,7 @@ void Player::updateMovement() {
     joyX /= joyDist;
     joyY /= joyDist;
     tryMove(joyX * speed, joyY * speed);
-
+    
     // Change costume based on direction
     if (joyX < 0) {
         direction = -90;
@@ -117,19 +130,6 @@ void Player::updateMovement() {
             }
         }
     }
-
-    // If the player is not moving, reset to first costume
-    if (joyDist == 0) {
-        if (direction == 0) {
-            currentCostume = walkUp.getFirstCostume();
-        } else if (direction == 180) {
-            currentCostume = walkDown.getFirstCostume();
-        } else if (direction == -90) {
-            currentCostume = walkLeft.getFirstCostume();
-        } else if (direction == 90) {
-            currentCostume = walkRight.getFirstCostume();
-        }
-    }
 }
 
 // Try to move
@@ -144,15 +144,20 @@ void Player::update() {}
 // Show player on screen (equivalent to Scratch's "show")
 void Player::show(Graphic& graphic, int camX, int camY) {
     if (!getCurrentCostume()) {
-        std::cerr << "WARNING: currentCostume is NULL!\n";
+        std::cerr << "WARNING: currentCostume is NULL! (message from player)\n";
         return;
     }
 
-    /* int screenX = static_cast<int>(x - camX);
-    int screenY = static_cast<int>(y - camY); */
+    // Lấy kích thước thực tế của sprite
+    int textureW, textureH;
+    if (SDL_QueryTexture(getCurrentCostume(), nullptr, nullptr, &textureW, &textureH) != 0) {
+        std::cerr << "ERROR: Cannot query texture (message from player): " << SDL_GetError() << std::endl;
+        return;
+    }
 
+    int footY = (WINDOW_HEIGHT / 2);  
     int screenX = WINDOW_WIDTH / 2;
-    int screenY = WINDOW_HEIGHT / 2;
+    int screenY = footY - textureH * UPSCALE; 
 
-    graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, screenY, PLAYER_MAX_WIDTH, PLAYER_MAX_HEIGHT);
+    graphic.renderTextureKeepRatio(getCurrentCostume(), screenX, screenY, UPSCALE);
 }

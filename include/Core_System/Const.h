@@ -1,33 +1,29 @@
 #ifndef CONST_H
 #define CONST_H
-
 #include <SDL2/SDL.h>
 #include <string>
 
+// Define constants
+#define WINDOW_TITLE "RPG GAME"
+#define BACKGROUND_PATH "D:/CODE/RPG_GAME/assets/background/Grass.png"
+#define ROOM_PATH "D:/CODE/RPG_GAME/assets/player/Room.png"
+#define PLAYER_SPRITE_PATH "D:/CODE/RPG_GAME/assets/player/idle0.png"
+#define VILLAGE_MAP_PATH "D:/CODE/RPG_GAME/assets/map/map_70x70.txt"
+
 // Kích thước cửa sổ
-constexpr int WINDOW_WIDTH = 800;
-constexpr int WINDOW_HEIGHT = 600;
+const int WINDOW_WIDTH = 800;
+const int WINDOW_HEIGHT = 600;
+const int FRAME_DELAY = 16;
 
-// Kích thước player
-constexpr int PLAYER_MAX_WIDTH = 0;
-constexpr int PLAYER_MAX_HEIGHT = 0;
+// Cấu hình nhân vật
+const int PLAYER_SPEED = 4;
+const int PLAYER_MAX_WIDTH = 0;
+const int PLAYER_MAX_HEIGHT = 0;
 
-// FPS
-constexpr int FPS = 60;
-constexpr int FRAME_DELAY = 1000 / FPS;
+// Scolling background
+const int CAMERA_MARGIN_X = 100;
+const int CAMERA_MARGIN_Y = 75;
 
-// Đường dẫn tài nguyên
-const std::string WINDOW_TITLE = "RPG Game";
-const std::string BACKGROUND_PATH = "assets/background/Grass.png";
-const std::string ROOM_PATH = "assets/player/Room.png";
-const std::string PLAYER_SPRITE_PATH = "assets/player/idle.png";
-const std::string VILLAGE_MAP_PATH = "assets/map/village.txt";
-
-// Tốc độ di chuyển của nhân vật
-constexpr int PLAYER_SPEED = 4;
-
-// Biên camera
-constexpr int CAMERA_MARGIN_X = 100;
-constexpr int CAMERA_MARGIN_Y = 75;
-
+// Kích thước img
+const int UPSCALE = 2;
 #endif // CONST_H

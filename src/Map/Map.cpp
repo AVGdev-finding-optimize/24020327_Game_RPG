@@ -21,36 +21,48 @@ void Map::switchBackground(int index) {
     background.switchCostume(index);
 }
 // Load background as an animation object
-void Map::loadBackground(Graphic& graphic, const std::string& path) {
+bool Map::loadBackground(Graphic& graphic, const std::string& path) {
     SDL_Texture* bgTexture = graphic.loadTexture(path);
     if (bgTexture) {
         background.addCostume(bgTexture);
+        return true;  // Thành công
     } else {
-        std::cerr << "ERROR: Failed to load background " << path << std::endl;
+        std::cerr << "ERROR: Failed to load background (message from map) " << path << std::endl;
+        return false; // Thất bại
     }
 }
 
 // Load tileset from file paths
 void Map::loadTileset(Graphic& graphic, const std::vector<std::string>& tilePaths) {
     for (const auto& path : tilePaths) {
+        if (path.empty()) {
+            std::cerr << "ERROR: Empty file path! Cannot load texture. (message from map)" << std::endl;
+            return;
+        }        
         SDL_Texture* tile = graphic.loadTexture(path.c_str());
         if (tile) {
             tiles.push_back(tile);
         } else {
-            std::cerr << "ERROR: Failed to load tile " << path << std::endl;
+            std::cerr << "ERROR: Failed to load tile (message from map) " << path << std::endl;
         }
     }
+    if (tiles.empty()) {
+        std::cerr << "ERROR: No tiles loaded! Cannot render map. (message from map)\n";
+        return;
+    }
+    std::cerr << "🎉 Tiles loaded! Totals of tiles  (message from map): " << tiles.size() << std::endl;
 }
 
 // Set map layout using a 2D vector
 void Map::setMapLayoutFromFile(const std::string& filename) {
     std::ifstream file(filename);
     if (!file) {
-        std::cerr << "ERROR: Cannot open map file " << filename << std::endl;
+        std::cerr << "ERROR: Cannot open map file (message from map) " << filename << std::endl;
         return;
     }
 
     tileMap.clear();
+    
     std::string line;
     int rowIndex = 0;
     while (std::getline(file, line)) {
@@ -58,10 +70,12 @@ void Map::setMapLayoutFromFile(const std::string& filename) {
         std::istringstream iss(line);
         int tileID;
         while (iss >> tileID) {
+            std::cerr << "DEBUG (message from map): Raw tile path (message from map): [" << line << "]" << std::endl;
+
             if (tileID >= 0 && tileID < static_cast<int>(tiles.size())) { 
                 row.push_back(tileID);
             } else {
-                std::cerr << "WARNING: Tile ID " << tileID << " is out of range!" << std::endl;
+                std::cerr << "WARNING (message from map): Tile ID " << tileID << " is out of range! Using the first tile (ID 0) instead. Total tiles available: " << static_cast<int>(tiles.size()) << std::endl;
                 row.push_back(0); // If invalid, use the first tile
             }
         }
@@ -78,28 +92,44 @@ void Map::setMapLayoutFromFile(const std::string& filename) {
 
     mapHeight = tileMap.size();
     mapWidth = (mapHeight > 0) ? tileMap[0].size() : 0;
+
+    std::cout << "Map size: " << mapWidth << " x " << mapHeight << std::endl;
 }
 
 // Render tiles on screen
 void Map::showTiles(Graphic& graphic, int camX, int camY) {
-    for (int row = 0; row < mapHeight; row++) {
-        for (int col = 0; col < mapWidth; col++) {
+    if (tiles.empty()) {
+        std::cout << "Tileset is empty! (message from map)" << std::endl;
+        return;
+    }
+
+    int colStart = camX / (tileSize * UPSCALE);
+    int rowStart = camY / (tileSize * UPSCALE);
+    int colEnd = colStart + (WINDOW_WIDTH / (tileSize * UPSCALE)) + 2;
+    int rowEnd = rowStart + (WINDOW_HEIGHT / (tileSize * UPSCALE)) + 2;
+
+    for (int row = rowStart; row < rowEnd; row++) {
+        for (int col = colStart; col < colEnd; col++) {
+
+            if (row < 0 || row >= mapHeight || col < 0 || col >= mapWidth) continue;
+
             int tileID = tileMap[row][col];
+            if (tileID < 0 || tileID >= static_cast<int>(tiles.size())) continue;
 
-            // If tileID is -1, it means no tile should be rendered
-            if (tileID == -1) continue;
+            int screenX = (col * tileSize * UPSCALE) - camX;
+            int screenY = (row * tileSize * UPSCALE) - camY;
 
-            if (tileID >= 0 && tileID < static_cast<int>(tiles.size())) {
-                int screenX = col * tileSize - camX;
-                int screenY = row * tileSize - camY;
+            bool isVisible = (screenX + tileSize * UPSCALE > 0 && screenX < WINDOW_WIDTH && screenY + tileSize * UPSCALE > 0 && screenY < WINDOW_HEIGHT);
 
-                if (screenX + tileSize > 0 && screenX < WINDOW_WIDTH && screenY + tileSize > 0 && screenY < WINDOW_HEIGHT) {
-                    
-                    if (tileID >= 0 && tileID < static_cast<int>(tiles.size())) {
-                        graphic.renderTextureKeepRatio(tiles[tileID], screenX, screenY, tileSize, tileSize);
-                    }
-                }
+            if (!isVisible) continue;
+            if (tileID == 0) {
+                SDL_SetTextureAlphaMod(tiles[tileID], 0);
+            }
 
+            graphic.renderTextureKeepRatio(tiles[tileID], screenX, screenY, UPSCALE);
+
+            if (tileID == 0) {
+                SDL_SetTextureAlphaMod(tiles[tileID], 255);
             }
         }
     }
@@ -107,5 +137,6 @@ void Map::showTiles(Graphic& graphic, int camX, int camY) {
 
 // Render the map
 void Map::show(Graphic& graphic, int x, int y) {
+    /* SDL_SetTextureAlphaMod(background.getCurrentCostume(), 150); */
     background.showBackground(background.getCurrentCostume(), x, y);
 }

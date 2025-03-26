@@ -9,7 +9,7 @@ SRC_DIR := src
 BUILD_DIR := build
 
 # Danh sách file
-SRC_FILES := src/Entities/Player.cpp src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/Map/Map.cpp src/Core_System/Game.cpp src/main.cpp
+SRC_FILES := src/Graphics_Rendering/Graphic.cpp src/Graphics_Rendering/Animation.cpp src/Entities/Player.cpp src/Map/Map.cpp src/Core_System/Game.cpp src/main.cpp
 OBJ_FILES := $(patsubst src/%.cpp, build/%.o, $(SRC_FILES))
 
 # File thực thi

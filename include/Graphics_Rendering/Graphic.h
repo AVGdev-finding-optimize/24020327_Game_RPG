@@ -20,7 +20,7 @@ public:
 
     bool initSDL(int width, int height, const char* title);
     SDL_Texture* loadTexture(const std::string& filePath);
-    void renderTextureKeepRatio(SDL_Texture* texture, int x, int y, int maxWidth, int maxHeight);
+    void renderTextureKeepRatio(SDL_Texture* texture, int x, int y, int scale);
     void renderBackground(SDL_Texture* texture, int x, int y);
     void prepareScene();
     void presentScene();

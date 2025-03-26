@@ -17,9 +17,9 @@ class Game {
 private:
     bool isRunning;
     Graphic graphic;
+    SDL_Texture* currentCostume;
     Player player;
     Map gameMap;
-    SDL_Texture* currentCostume;
 public:
     Game();
     ~Game();
@@ -32,7 +32,7 @@ public:
 
     // Tile System & Level Map
     
-    void loadAllTiles();
+    void loadAllTiles(Graphic& graphic); // Load all tiles from file
 
     // Game loop
     void foreverLoop(); // Scratch-style "forever" loop (game loop)

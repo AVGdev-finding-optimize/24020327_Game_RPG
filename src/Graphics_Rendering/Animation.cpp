@@ -16,17 +16,18 @@ void Animation::addCostume(SDL_Texture* texture) {
     }
 }
 
-void Animation::show(Graphic& graphic, int x, int y, int maxWidth, int maxHeight) {
+void Animation::show(Graphic& graphic, int x, int y) {
     if (frames.empty()) {
-        std::cerr << "ERROR: No frames to show in animation!" << std::endl;
+        std::cerr << "ERROR: No frames to show in animation! (message from animation)" << std::endl;
         return;
     }
-    graphic.renderTextureKeepRatio(frames[currentFrame], x, y, maxWidth, maxHeight);
+
+    graphic.renderTextureKeepRatio(frames[currentFrame], x, y, m_scale);
 }
 
 void Animation::showBackground(SDL_Texture* texture, int x, int y) {
     if (!texture) {
-        std::cerr << "ERROR: No background texture to show!" << std::endl;
+        std::cerr << "ERROR: No background texture to show! (message from animation)" << std::endl;
         return;
     }
     graphic.renderBackground(texture, x, y);
@@ -37,7 +38,7 @@ void Animation::switchCostume(int costumeIndex) {
     if (costumeIndex >= 0 && costumeIndex < static_cast<int>(frames.size())) {
         currentFrame = costumeIndex;
     } else {
-        std::cerr << "ERROR: Invalid costume index " << costumeIndex << std::endl;
+        std::cerr << "ERROR: Invalid costume index (message from animation): " << costumeIndex << std::endl;
     }
 }
 
@@ -85,25 +86,28 @@ void Animation::clear() {
 
 // Resize image
 void Animation::setSize(int scale) {
-    if (frames.empty()) {
-        std::cerr << "ERROR: No frames to set size!" << std::endl;
+    if (scale <= 0) {
+        std::cerr << "ERROR: Invalid scale value! Must be > 0. (message from animation)" << std::endl;
         return;
     }
 
-    float factor = scale / 100.0f;
-    m_scale = scale;
+    if (frames.empty()) {
+        std::cerr << "ERROR: No frames to set size! (message from animation)" << std::endl;
+        return;
+    }
 
-    for (SDL_Texture*& frame : frames) {
+    m_scale = scale;
+    m_maxWidth = 0;
+    m_maxHeight = 0;
+
+    for (SDL_Texture* frame : frames) {
         int origW, origH;
         if (SDL_QueryTexture(frame, nullptr, nullptr, &origW, &origH) != 0) {
-            std::cerr << "ERROR: Cannot query texture: " << SDL_GetError() << std::endl;
+            std::cerr << "ERROR: Cannot query texture (message from animation): " << SDL_GetError() << std::endl;
             continue;
         }
 
-        int newW = static_cast<int>(origW * factor);
-        int newH = static_cast<int>(origH * factor);
-
-        m_maxWidth = std::max(m_maxWidth, newW);
-        m_maxHeight = std::max(m_maxHeight, newH);
+        m_maxWidth = std::max(m_maxWidth, origW * scale);
+        m_maxHeight = std::max(m_maxHeight, origH * scale);
     }
 }

@@ -27,7 +27,7 @@ public:
     int getMapHeight() const { return mapHeight; }
     int getTileSize() const { return tileSize; }
 
-    void loadBackground(Graphic& graphic, const std::string& path);
+    bool loadBackground(Graphic& graphic, const std::string& path);
     void switchBackground(int index);
     void loadTileset(Graphic& graphic, const std::vector<std::string>& tilePaths);
     void showTiles(Graphic& graphic, int camX, int camY);

@@ -55,6 +55,10 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
     gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH); // Load map layout from file
     std::cout << "Map layout loaded! (message from game)\n";
     
+    // Render textengine
+    textEngine = new TextEngine(graphic.getRenderer());
+    textEngine->loadFont("D:/CODE/RPG_GAME/assets/font/#9Slide04 Rokkitt Bold_1.ttf", 24);
+
     camX = 0;
     camY = 0;
 
@@ -64,7 +68,7 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
 
 // Load all tiles from file
 void Game::loadAllTiles(Graphic& graphic) { 
-    std::ifstream file("D:/CODE/RPG_GAME/assets/tiles/paths.txt"); 
+    std::ifstream file("D:/CODE/RPG_GAME/assets/tiles/layerpaths.txt"); 
 
     if (!file.is_open()) { 
         std::cerr << "Can't open file  paths.txt! (message from game)\n"; 
@@ -85,7 +89,6 @@ void Game::loadAllTiles(Graphic& graphic) {
 
     file.close(); 
 
-    // Kiểm tra có load được tiles không
     if (tilePaths.empty()) { 
         std::cerr << "File paths.txt empty or invalid! (message from game)\n"; 
         return; 
@@ -96,7 +99,7 @@ void Game::loadAllTiles(Graphic& graphic) {
     std::cerr << "🎉 Tiles loaded! Total of tiles: " << tilePaths.size() << " (message from game)" << std::endl; 
 }
 
-// Main game loop (Scratch: "forever loop")
+// Main game loop
 void Game::foreverLoop() {
     std::cout << "Game is running... (message from game)\n";
     
@@ -115,30 +118,70 @@ void Game::foreverLoop() {
     }
 }
 
-// Handle events (Scratch: "when key pressed")
+//Handle
 void Game::whenKeyPressed() {
     SDL_Event event;
     const Uint8* keystates = SDL_GetKeyboardState(NULL);
+    static bool tPressed = false; // Trạng thái phím T
 
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             isRunning = false;
         }
+        if (event.type == SDL_MOUSEBUTTONDOWN) {
+            isMouseDown = true;
+            gameMap.handleMousePalette(event.button.button);
+        }
+        if (event.type == SDL_MOUSEBUTTONUP) {
+            isMouseDown = false; 
+        }
+        if (event.type == SDL_MOUSEMOTION) {
+            int mouseX, mouseY;
+            SDL_GetMouseState(&mouseX, &mouseY);
+            gameMap.updateMousePosition(mouseX, mouseY, camX, camY);
+
+            if (isMouseDown) { 
+                gameMap.handleMousePalette(SDL_BUTTON_LEFT); 
+            }
+        }
+        if (event.type == SDL_MOUSEWHEEL) {
+            gameMap.handleMouseWheelPalette(event.wheel.y);
+        }
+        if (event.type == SDL_KEYDOWN) {
+            if (event.key.keysym.sym == SDLK_m) { 
+                gameMap.saveMapToFile(VILLAGE_MAP_PATH);
+            }
+            if (event.key.keysym.sym == SDLK_e) {
+                gameMap.eraseTile = !gameMap.eraseTile;
+            }
+            if (event.key.keysym.sym == SDLK_t && !tPressed) { 
+                tPressed = true; 
+                gameMap.paletteOpen = !gameMap.paletteOpen;
+            }
+        }
+        if (event.type == SDL_KEYUP) {
+            if (event.key.keysym.sym == SDLK_t) {
+                tPressed = false;
+            }
+        }
     }
-    
+
     player.handleInputState(keystates);
 }
 
 // Camera
 void Game::updateCamera(int playerX, int playerY) {
-    camX = player.getX() - (WINDOW_WIDTH / 2);
-    camY = player.getY() - (WINDOW_HEIGHT / 2);
+    int camXOffset = gameMap.paletteOpen ? -340 : 0;
 
+    camX = playerX - (WINDOW_WIDTH / 2) + camXOffset;
+    camY = playerY - (WINDOW_HEIGHT / 2);
+
+    // Giữ camera theo khoảng cách với player
     if (playerX < camX + WINDOW_WIDTH / 2 - CAMERA_MARGIN_X) {
-        camX = playerX - (WINDOW_WIDTH / 2 - CAMERA_MARGIN_X);
+        camX = playerX - (WINDOW_WIDTH / 2 - CAMERA_MARGIN_X) + camXOffset;
     }
     if (playerX > camX + WINDOW_WIDTH / 2 + CAMERA_MARGIN_X) {
-        camX = playerX - (WINDOW_WIDTH / 2 + CAMERA_MARGIN_X);
+        camX = playerX - (WINDOW_WIDTH / 2 + CAMERA_MARGIN_X) + camXOffset;
     }
     if (playerY < camY + WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y) {
         camY = playerY - (WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y);
@@ -147,10 +190,11 @@ void Game::updateCamera(int playerX, int playerY) {
         camY = playerY - (WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y);
     }
 
+    // Giới hạn camera trong bản đồ
     if (camX < 0) camX = 0;
     if (camY < 0) camY = 0;
-    if (camX + WINDOW_WIDTH > gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE) 
-        camX = gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE - WINDOW_WIDTH;
+    if (camX + WINDOW_WIDTH > gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE + camXOffset) 
+        camX = gameMap.getMapWidth() * gameMap.getTileSize() * UPSCALE - WINDOW_WIDTH + camXOffset;
     if (camY + WINDOW_HEIGHT > gameMap.getMapHeight() * gameMap.getTileSize() * UPSCALE) 
         camY = gameMap.getMapHeight() * gameMap.getTileSize() * UPSCALE - WINDOW_HEIGHT;
 }
@@ -160,9 +204,8 @@ void Game::updateGame() {
     if (!isRunning) return;  // Exit early if the game is not running
     updateCamera(player.getX(), player.getY());
     player.update();       // Update player logic
-    player.moveSteps(camX, camY);    // Process player movement
+    player.moveSteps(camX, camY, gameMap.paletteOpen);    // Process player movement
 
-    // Optimized Debugging: Only log once when texture becomes NULL
     static bool wasNull = false; // Track previous texture state
     if (!player.getCurrentCostume()) {  // Use getter function
         if (!wasNull) {  // Log only when texture first turns NULL
@@ -174,21 +217,23 @@ void Game::updateGame() {
     }
 }
 
-// Render game objects (Scratch: "show")
+// Render game objects
 void Game::show() {
     graphic.prepareScene();
     gameMap.show(graphic, -128 - camX % 64, -128 - camY % 64);
     player.dataCollect(gameMap.getMapHeight(), gameMap.getMapWidth(), gameMap.getTileSize());
-    player.show(graphic);
-    /* gameMap.showTiles(graphic, 0 - camX, 0 - camY); */
-    std::cout << "Calling showTiles - ";
     gameMap.showTiles(graphic, camX, camY);
-    std::cout << "Finished (message from game)" << std::endl;
-
+    player.show(graphic);
+    if (gameMap.isMapEditorActive()) {
+        gameMap.highlightCursor(camX, camY);
+        if (gameMap.isPaletteOpen()) {
+            gameMap.showPalette();
+            gameMap.displayPaintBrushTileID(textEngine);
+        }
+    }
     graphic.presentScene();
 }
 
-// Cleanup resources (Scratch: "stop all")
 void Game::stopAll() {
     std::cout << "Cleaning up game... (message from game)\n";
 }

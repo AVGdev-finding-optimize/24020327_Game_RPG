@@ -84,14 +84,14 @@ void Player::handleInputState(const Uint8* keystates) {
     }
 }
 
-void Player::moveSteps(int camX, int camY) {
+void Player::moveSteps(int camX, int camY, int paletteOpen) {
     if (joyDist > 0) {
-        updateMovement(camX, camY);
+        updateMovement(camX, camY, paletteOpen);
     }
 }
 
 // Update movement logic
-void Player::updateMovement(int camX, int camY) {
+void Player::updateMovement(int camX, int camY, int paletteOpen) {
     if (joyDist > 1) {
         joyDist = sqrt(2); // Normalize diagonal movement speed
     }
@@ -105,14 +105,16 @@ void Player::updateMovement(int camX, int camY) {
     int playerHeight = textureH * UPSCALE;
     int playerWidth = textureW * UPSCALE;
 
-    bool camLockedX = (camX <= 32 || camX + WINDOW_WIDTH >= mapWidth * tileSize * UPSCALE);
+    int camXOffset = paletteOpen ? -340 : 0;
+    
+    bool camLockedX = (camX <= 32 || camX + WINDOW_WIDTH >= (mapWidth * tileSize * UPSCALE + camXOffset - 32));
     bool camLockedY = (camY <= 32 || camY + WINDOW_HEIGHT >= mapHeight * tileSize * UPSCALE);
 
     if (!camLockedX) {
         x += joyX * speed;
-        screenX = WINDOW_WIDTH / 2;  // Nhân vật luôn ở giữa màn hình
+        screenX = (WINDOW_WIDTH + camXOffset) / 2;
     } else {
-        screenX = clamp(screenX + joyX * speed, 0, WINDOW_WIDTH - playerWidth);
+        screenX = clamp(screenX + joyX * speed, 0, WINDOW_WIDTH - playerWidth -  camXOffset);
         x += joyX * speed;
     }
 

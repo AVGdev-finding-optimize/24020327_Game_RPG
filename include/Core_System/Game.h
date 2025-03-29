@@ -9,6 +9,7 @@
 #include <vector>
 #include "Graphics_Rendering/Graphic.h"
 #include "Graphics_Rendering/Animation.h"
+#include "Graphics_Rendering/Textengine.h"
 #include "Entities/Player.h"
 #include "Core_System/Const.h"
 #include "Map/Map.h"
@@ -16,14 +17,17 @@
 class Game {
 private:
     bool isRunning;
+    bool isMouseDown = 0;
     Graphic graphic;
     SDL_Texture* currentCostume;
     Player player;
     Map gameMap;
+    TextEngine* textEngine;
+
 public:
     Game();
     ~Game();
-    
+
     // Camera and scrolling system
     int camX, camY; // Camera position
     int getGameWidth() const { return gameMap.getMapHeight(); }

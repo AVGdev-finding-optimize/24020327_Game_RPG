@@ -207,6 +207,7 @@ void Map::showPalette() {
     for (int row = startRow; row < endRow; row++) {
         for (int col = 0; col < tilePerRow; col++) {
             int tileIndex = row * tilePerRow + col + 1;
+            /* int tileIndex = (row == startRow) ? (row * tilePerRow + col + 1) : (row * tilePerRow + col + 14); */
             if (tileIndex >= static_cast<int>(tiles.size())) break;
 
             int tileX = paletteX + 18 + col * (tileSizeScaled + tileSpacing);

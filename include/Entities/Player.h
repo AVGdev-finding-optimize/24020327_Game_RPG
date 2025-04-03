@@ -12,15 +12,16 @@
 
 class Player {
 private:
-    double x, y;               // Player position
-    double joyX, joyY, joyDist;// Movement direction
-    int screenX, screenY;
-    int speed;                 // Movement speed
-    int direction;             // Movement direction
-    SDL_Texture* currentCostume; // Current costume
-    Animation walkUp, walkDown, walkLeft, walkRight; // Movement animations
+    double x, y;               
+    double joyX, joyY, joyDist;
+    int screenX = WINDOW_WIDTH / 2;
+    int screenY = WINDOW_HEIGHT / 2;
+    int speed;                 
+    int direction;             
+    SDL_Texture* currentCostume; 
+    Animation walkUp, walkDown, walkLeft, walkRight; 
     Uint32 lastFrameTime;     // Last frame time
-    int mapWidth, mapHeight, tileSize; // Map dimensions
+    int mapWidth, mapHeight, tileSize; 
     int oldSpriteHeight = 0;
     int interpolatedHeight = 0;
 
@@ -31,16 +32,15 @@ public:
     inline void setX(int newX) { x += newX; }
     inline void setY(int newY) { y += newY; }
 
-    void startAsClone(Graphic &graphic); // Initialize player (equivalent to Scratch's "start as a clone")
-    void handleInputState(const Uint8* keystates); // Process input
-    void moveSteps(int camX, int camY, int mapEditorActive); // Move according to direction (equivalent to "move steps")
-    void tryMove(double dx, double dy); // Try to move
-    void updateMovement(int camX, int camY, int mapEditorActive); // Update position
-    void update(); // Update state (animations)
-    void dataCollect(int gameMapHeight, int gameMapWidth, int tile_Size); // Collect data from game
-    void show(Graphic& graphic); // Render player (equivalent to "show")
-    SDL_Texture* getCurrentCostume() const; // Get current costume
-
+    void startAsClone(Graphic &graphic); 
+    void handleInputState(const Uint8* keystates); 
+    void moveSteps(int camX, int camY); 
+    void tryMove(double dx, double dy); 
+    void updateMovement(int camX, int camY);
+    void update(); 
+    void dataCollect(int gameMapHeight, int gameMapWidth, int tile_Size); 
+    void show(Graphic& graphic);
+    SDL_Texture* getCurrentCostume() const;
     void setScreenX(int sx) { screenX = sx; }
     void setScreenY(int sy) { screenY = sy; }
     double getX() const { return x; }

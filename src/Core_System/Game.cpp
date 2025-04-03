@@ -157,6 +157,7 @@ void Game::whenKeyPressed() {
             if (event.key.keysym.sym == SDLK_t && !tPressed) { 
                 tPressed = true; 
                 gameMap.paletteOpen = !gameMap.paletteOpen;
+                updateGame();
             }
         }
         if (event.type == SDL_KEYUP) {
@@ -171,23 +172,27 @@ void Game::whenKeyPressed() {
 
 // Camera
 void Game::updateCamera(int playerX, int playerY) {
-    int camXOffset = gameMap.paletteOpen ? -340 : 0;
-
+    int camXOffset = gameMap.paletteOpen ? PALETTE_WIDTH : 0;
+    if (gameMap.isMapEditorActive()) {
+        camXOffset = gameMap.paletteOpen ? PALETTE_WIDTH : 0;
+    } else {
+        camXOffset = 0;
+    }
     camX = playerX - (WINDOW_WIDTH / 2) + camXOffset;
     camY = playerY - (WINDOW_HEIGHT / 2);
 
     // Giữ camera theo khoảng cách với player
-    if (playerX < camX + WINDOW_WIDTH / 2 - CAMERA_MARGIN_X) {
-        camX = playerX - (WINDOW_WIDTH / 2 - CAMERA_MARGIN_X) + camXOffset;
+    if (playerX < camX + WINDOW_WIDTH / 2) {
+        camX = playerX - (WINDOW_WIDTH / 2) - camXOffset;
     }
-    if (playerX > camX + WINDOW_WIDTH / 2 + CAMERA_MARGIN_X) {
-        camX = playerX - (WINDOW_WIDTH / 2 + CAMERA_MARGIN_X) + camXOffset;
+    if (playerX > camX + WINDOW_WIDTH / 2) {
+        camX = playerX - (WINDOW_WIDTH / 2) - camXOffset;
     }
-    if (playerY < camY + WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y) {
-        camY = playerY - (WINDOW_HEIGHT / 2 - CAMERA_MARGIN_Y);
+    if (playerY < camY + WINDOW_HEIGHT / 2) {
+        camY = playerY - (WINDOW_HEIGHT / 2);
     }
-    if (playerY > camY + WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y) {
-        camY = playerY - (WINDOW_HEIGHT / 2 + CAMERA_MARGIN_Y);
+    if (playerY > camY + WINDOW_HEIGHT / 2) {
+        camY = playerY - (WINDOW_HEIGHT / 2);
     }
 
     // Giới hạn camera trong bản đồ
@@ -204,7 +209,7 @@ void Game::updateGame() {
     if (!isRunning) return;  // Exit early if the game is not running
     updateCamera(player.getX(), player.getY());
     player.update();       // Update player logic
-    player.moveSteps(camX, camY, gameMap.paletteOpen);    // Process player movement
+    player.moveSteps(camX, camY);    // Process player movement
 
     static bool wasNull = false; // Track previous texture state
     if (!player.getCurrentCostume()) {  // Use getter function

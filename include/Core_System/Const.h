@@ -22,10 +22,6 @@ const int MAX_PALETTE_ROWS = 9;
 const int PLAYER_SPEED = 4;
 const int PLAYER_MAX_WIDTH = 0;
 const int PLAYER_MAX_HEIGHT = 0;
-
-// Scolling background
-const int CAMERA_MARGIN_X = 100;
-const int CAMERA_MARGIN_Y = 75;
 const int TILE_0_ALPHA = 0;
 
 // Size img

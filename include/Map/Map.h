@@ -27,7 +27,7 @@ private:
     SDL_Texture* previewTile = nullptr;
     int mouseTileX, mouseTileY;
     int selectedTileX, selectedTileY;
-    int paintbrush = 99;
+    int paintbrush = -1;
     int selectedTileID = 0;
     int paletteOffset = 0;
     int mousePosX, mousePosY;

@@ -73,15 +73,29 @@ void Map::loadTileset(Graphic& graphic, const std::vector<std::string>& tilePath
     }
 }
 
-void Map::setMapLayoutFromFile(const std::string& filename) {
+void Map::setMapLayoutFromFile(const std::string& filename, int layoutIndex) {
     std::ifstream file(filename);
     if (!file) {
         std::cerr << "ERROR: Cannot open map file (message from map) " << filename << std::endl;
         return;
     }
-
-    tileMapLayerA.clear();
-    
+    switch (layoutIndex) {
+        case 1:
+            std::cerr << "Loading map layout 1 (message from map)" << std::endl;
+            tileMapLayerA.clear();
+            break;
+        case 2:
+            std::cerr << "Loading map layout 2 (message from map)" << std::endl;
+            tileMapLayerB.clear();
+            break;
+        case 3:
+            std::cerr << "Loading map layout 3 (message from map)" << std::endl;
+            tileMapLayerC.clear();
+            break;
+        default:
+            std::cerr << "ERROR: Invalid layout index! (message from map)" << std::endl;
+            return;
+    }
     std::string line;
     int rowIndex = 0;
     while (std::getline(file, line)) {
@@ -95,28 +109,64 @@ void Map::setMapLayoutFromFile(const std::string& filename) {
                 row.push_back(tileID);
             } else {
                 std::cerr << "WARNING (message from map): Tile ID " << tileID << " is out of range! Using the first tile (ID 0) instead. Total tiles available: " << static_cast<int>(tiles.size()) << std::endl;
-                row.push_back(0); // If invalid, use the first tile
+                row.push_back(0); 
             }
         }
-        tileMapLayerA.push_back(row);
+        switch (layoutIndex) {
+            case 1:
+                tileMapLayerA.push_back(row);
+                break;
+            case 2:
+                tileMapLayerB.push_back(row);
+                break;
+            case 3:
+                tileMapLayerC.push_back(row);
+                break;
+            default:
+                std::cerr << "ERROR: Invalid layout index! (message from map)" << std::endl;
+                break;
+        }
         rowIndex++;
     }
 
-    for (const auto& row : tileMapLayerA) {
-        for (int tileID : row) {
-            std::cout << tileID << " ";
-        }
-        std::cout << std::endl;
+    switch (layoutIndex) {
+        case 1:
+            for (const auto& row : tileMapLayerA) {
+                for (int tileID : row) {
+                    std::cout << tileID << " ";
+                }
+                std::cout << std::endl;
+            }
+            break;
+        case 2:
+            for (const auto& row : tileMapLayerB) {
+                for (int tileID : row) {
+                    std::cout << tileID << " ";
+                }
+                std::cout << std::endl;
+            }
+            break;
+        case 3:
+            for (const auto& row : tileMapLayerC) {
+                for (int tileID : row) {
+                    std::cout << tileID << " ";
+                }
+                std::cout << std::endl;
+            }
+            break;
+        default:
+            std::cerr << "ERROR: Invalid layout index! (message from map)" << std::endl;
+            break;
     }
 
     mapHeight = tileMapLayerA.size();
     mapWidth = (mapHeight > 0) ? tileMapLayerA[0].size() : 0;
 
-    std::cout << "Map size: " << mapWidth << " x " << mapHeight << std::endl;
+    std::cout << "Map layout 1 size: " << mapWidth << " x " << mapHeight << std::endl;
 }
 
 // Render map block
-void Map::showTiles(Graphic& graphic, int camX, int camY) {
+void Map::showTiles(Graphic& graphic, int camX, int camY, int layerIndex) {
     if (tiles.empty()) {
         std::cout << "Tileset is empty! (message from map)" << std::endl;
         return;
@@ -131,7 +181,21 @@ void Map::showTiles(Graphic& graphic, int camX, int camY) {
         for (int col = colStart; col < colEnd; col++) {
             if (row < 0 || row >= mapHeight || col < 0 || col >= mapWidth) continue;
 
-            int tileID = tileMapLayerA[row][col];
+            int tileID = 0;
+            switch (layerIndex) {
+                case 1:
+                    tileID = tileMapLayerA[row][col];
+                    break;
+                case 2:
+                    tileID = tileMapLayerB[row][col];
+                    break;
+                case 3:
+                    tileID = tileMapLayerC[row][col];
+                    break;
+                default:
+                    std::cerr << "ERROR: Invalid layer index! (message from map)" << std::endl;
+                    return;
+            }
             if (tileID < 0 || tileID >= static_cast<int>(tiles.size())) continue;
 
             int screenX = (col * tileSize * UPSCALE) - camX;
@@ -144,6 +208,15 @@ void Map::showTiles(Graphic& graphic, int camX, int camY) {
             int texWidth, texHeight;
             SDL_QueryTexture(tiles[tileID], nullptr, nullptr, &texWidth, &texHeight);
             if (tiles[tileID]) {
+                if (onionMode) {
+                    if (layerIndex == layer) {
+                        SDL_SetTextureAlphaMod(tiles[tileID], 255);
+                    } else {
+                        SDL_SetTextureAlphaMod(tiles[tileID], 50);
+                    }
+                } else {
+                    SDL_SetTextureAlphaMod(tiles[tileID], 255);
+                }
                 if (texWidth < tileSize && (tileID == 67 || tileID == 85)) {
                     graphic.renderTextureKeepRatio(tiles[tileID], screenX + (tileSize - texWidth) * UPSCALE, screenY, UPSCALE);
                 } else {
@@ -155,11 +228,18 @@ void Map::showTiles(Graphic& graphic, int camX, int camY) {
 }
 
 void Map::show(Graphic& graphic, int x, int y) {
+    if (onionMode) {
+        graphic.prepareSceneWithColor(WHITE_COLOR);
+        SDL_SetTextureAlphaMod(background.getCurrentCostume(), 50);
+    } else {
+        graphic.prepareSceneWithColor(BLACK_COLOR);
+        SDL_SetTextureAlphaMod(background.getCurrentCostume(), 255);
+    }
     background.showBackground(background.getCurrentCostume(), x, y);
 }
 
 // --------- Code map editor ----------
-void Map::saveMapToFile(const std::string& filePath) {
+void Map::saveMapToFile(const std::string& filePath, int layoutIndex) {
     if (mapEditor) {
         std::ofstream file(filePath);
         if (!file.is_open()) {
@@ -169,7 +249,20 @@ void Map::saveMapToFile(const std::string& filePath) {
 
         for (int row = 0; row < mapHeight; row++) {
             for (int col = 0; col < mapWidth; col++) {
-                file << tileMapLayerA[row][col];
+                switch (layoutIndex) {
+                    case 1:
+                        file << tileMapLayerA[row][col];
+                        break;
+                    case 2:
+                        file << tileMapLayerB[row][col];
+                        break;
+                    case 3:
+                        file << tileMapLayerC[row][col];
+                        break;
+                    default:
+                        std::cerr << "ERROR: Invalid layout index! (message from map)" << std::endl;
+                        return;
+                }
                 if (col < mapWidth - 1) file << " ";
             }
             file << "\n";
@@ -351,7 +444,20 @@ void Map::handleMousePalette(int button) {
                     paintbrush = newPaintbrush;
                 }
 
-                tileMapLayerA[selectedTileY][selectedTileX] = paintbrush;
+                switch (layer) {
+                    case 1:
+                        tileMapLayerA[selectedTileY][selectedTileX] = paintbrush;
+                        break;
+                    case 2:
+                        tileMapLayerB[selectedTileY][selectedTileX] = paintbrush;
+                        break;
+                    case 3:
+                        tileMapLayerC[selectedTileY][selectedTileX] = paintbrush;
+                        break;
+                    default:
+                        std::cerr << "ERROR: Invalid layer index! (message from map)" << std::endl;
+                        return;
+                }
                 SDL_SetTextureAlphaMod(previewTile, 255);
             }
         }
@@ -395,6 +501,8 @@ void Map::displayPaintBrushTileID(TextEngine* textEngine) {
     textEngine->showText(eraseText, WINDOW_WIDTH - PALETTE_WIDTH, WINDOW_HEIGHT - 70, WHITE_COLOR);
     std::string dragText = dragTile ? "Drag mode: ON" : "Drag mode: OFF";
     textEngine->showText(dragText, WINDOW_WIDTH - PALETTE_WIDTH, WINDOW_HEIGHT - 90, WHITE_COLOR);
+    std::string layerText = "Layer: " + std::to_string(layer);
+    textEngine->showText(layerText, 20, 20, WHITE_COLOR);
     graphic.presentScene();
 }
 

@@ -52,7 +52,9 @@ bool Game::initSDL(const char* title, int x, int y, int width, int height, bool 
     // Load all tiles
     loadAllTiles(graphic);
     std::cout << "Tiles loaded! (message from game)\n";
-    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH); // Load map layout from file
+    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH_LAYER_1, 1);
+    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH_LAYER_2, 2);
+    gameMap.setMapLayoutFromFile(VILLAGE_MAP_PATH_LAYER_3, 3);
     std::cout << "Map layout loaded! (message from game)\n";
     
     // Render textengine
@@ -117,7 +119,7 @@ void Game::intro() {
         SDL_RenderCopy(renderer, logo, nullptr, &logoRect);
         for (int alpha = 0; alpha <= 255; alpha += 5) {
             graphic.prepareSceneWithColor(WHITE_COLOR);
-            textEngine->showTextCenter("Nguyen Toan", BLACK_COLOR, alpha);
+            textEngine->showTextCenter("UET - PROJECT GAME", BLACK_COLOR, alpha);
             /* SDL_SetTextureAlphaMod(logo, alpha); */
 
             graphic.presentScene();
@@ -216,7 +218,10 @@ void Game::handleKeyboardEvents(SDL_Event& event) {
 
     if (event.type == SDL_KEYDOWN) {
         if (event.key.keysym.sym == SDLK_m) { 
-            gameMap.saveMapToFile(VILLAGE_MAP_PATH);
+            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_1, 1);
+            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_2, 2);
+            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_3, 3);
+            std::cout << "Map saved! (message from game)\n";
         }
         if (event.key.keysym.sym == SDLK_e) {
             gameMap.eraseTile = !gameMap.eraseTile;
@@ -237,6 +242,27 @@ void Game::handleKeyboardEvents(SDL_Event& event) {
                 gameMap.dragTile = !gameMap.dragTile;
             }
             updateGame();
+        }
+        if (event.key.keysym.sym == SDLK_1) {
+            if (gameMap.layer == 1) {
+                gameMap.onionMode = !gameMap.onionMode;
+            } else {
+                gameMap.layer = 1;
+            }
+        }
+        if (event.key.keysym.sym == SDLK_2) {
+            if (gameMap.layer == 2) {
+                gameMap.onionMode = !gameMap.onionMode;
+            } else {
+                gameMap.layer = 2;
+            }
+        }
+        if (event.key.keysym.sym == SDLK_3) {
+            if (gameMap.layer == 3) {
+                gameMap.onionMode = !gameMap.onionMode;
+            } else {
+                gameMap.layer = 3;
+            }
         }
     }
     if (event.type == SDL_KEYUP) {
@@ -317,8 +343,10 @@ void Game::show() {
     graphic.prepareScene();
     gameMap.show(graphic, -128 - camX % 64, -128 - camY % 64);
     player.dataCollect(gameMap.getMapHeight(), gameMap.getMapWidth(), gameMap.getTileSize());
-    gameMap.showTiles(graphic, camX, camY);
+    gameMap.showTiles(graphic, camX, camY, 1);
+    gameMap.showTiles(graphic, camX, camY, 2);
     player.show(graphic);
+    gameMap.showTiles(graphic, camX, camY, 3);
     if (gameMap.isMapEditorActive()) {
         gameMap.highlightCursor(camX, camY);
         if (gameMap.isPaletteOpen()) {

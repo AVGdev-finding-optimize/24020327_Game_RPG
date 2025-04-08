@@ -19,6 +19,8 @@ private:
     int tileSize;
     int mapWidth, mapHeight;
     std::vector<std::vector<int>> tileMapLayerA;
+    std::vector<std::vector<int>> tileMapLayerB;
+    std::vector<std::vector<int>> tileMapLayerC;
     
     //map editor
     bool mapEditor = true;
@@ -53,16 +55,17 @@ public:
     bool paletteOpen = false;
     bool dragTile = false;
     bool isDragging = false;
+    bool onionMode = false;
     int dragBasePaintbrush = 0;
-
+    int layer = 1;
 
     // generate block
     bool loadBackground(Graphic& graphic, const std::string& path);
     void switchBackground(int index);
     void loadTileset(Graphic& graphic, const std::vector<std::string>& tilePaths);
-    void showTiles(Graphic& graphic, int camX, int camY);
-    void setMapLayoutFromFile(const std::string& filename);
-    void saveMapToFile(const std::string& filePath);
+    void showTiles(Graphic& graphic, int camX, int camY, int layerIndex);
+    void setMapLayoutFromFile(const std::string& filename, const int layoutIndex = 1);
+    void saveMapToFile(const std::string& filePath, const int layoutIndex = 1);
 
     // map edit block
     int selectedTile; 

@@ -9,7 +9,9 @@
 #define HIGHLIGHT_PATH "D:/CODE/RPG_GAME/assets/tiles/Outline.png"
 #define ROOM_PATH "D:/CODE/RPG_GAME/assets/player/Room.png"
 #define PLAYER_SPRITE_PATH "D:/CODE/RPG_GAME/assets/player/idle0.png"
-#define VILLAGE_MAP_PATH "D:/CODE/RPG_GAME/assets/map/map_70x70.txt"
+#define VILLAGE_MAP_PATH_LAYER_1 "D:/CODE/RPG_GAME/assets/map/Village_layer_1.txt"
+#define VILLAGE_MAP_PATH_LAYER_2 "D:/CODE/RPG_GAME/assets/map/Village_layer_2.txt"
+#define VILLAGE_MAP_PATH_LAYER_3 "D:/CODE/RPG_GAME/assets/map/Village_layer_3.txt"
 
 // Logo
 #define LOGO_PATH "D:/CODE/RPG_GAME/assets/background/logo.png"
@@ -32,7 +34,7 @@ const int PLAYER_MAX_WIDTH = 0;
 const int PLAYER_MAX_HEIGHT = 0;
 const int TILE_0_ALPHA = 0;
 const int TOTAL_COLS = 18;
-const int TOTAL_ROWS = 13;
+const int TOTAL_ROWS = 30;
 const int VIEW_COLS = 5;
 const int VIEW_ROWS = 9;
 

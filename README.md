@@ -49,3 +49,4 @@ Phát triển hệ thống âm thanh với nhạc nền, hiệu ứng âm thanh 
 5.5. Tăng cường thử nghiệm và phản hồi người chơi:
 Triển khai các phiên bản beta để thu thập ý kiến người chơi nhằm liên tục cải tiến và điều chỉnh hướng phát triển phù hợp.
 Xây dựng cộng đồng người chơi để nhận phản hồi, từ đó định hướng những cải tiến hữu ích cho phiên bản tương lai.
+6. Nguồn đồ họa: https://opengameart.org/content/tiny-adventure-pack

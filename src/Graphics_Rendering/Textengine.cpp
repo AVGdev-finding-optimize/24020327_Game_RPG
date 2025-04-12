@@ -93,3 +93,21 @@ void TextEngine::fadeOutTextCenter(const std::string& text, SDL_Color color, int
         SDL_Delay(delay);
     }
 }
+
+void TextEngine::fadeInText(const std::string& text, SDL_Color color, int x, int y, int durationMs) {
+    int step = 5;
+    for (int alpha = 0; alpha <= 255; alpha += step) {
+        SDL_RenderClear(renderer);
+        showText(text, x, y, color, alpha);
+        SDL_RenderPresent(renderer);
+    }
+}  
+
+void TextEngine::fadeOutText(const std::string& text, SDL_Color color, int x, int y, int durationMs) {
+    int step = 5;
+    for (int alpha = 255; alpha >= 0; alpha -= step) {
+        SDL_RenderClear(renderer);
+        showText(text, x, y, color, alpha);
+        SDL_RenderPresent(renderer);
+    }
+}

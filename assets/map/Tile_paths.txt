@@ -249,6 +249,8 @@ D:/CODE/RPG_GAME/assets/tiles/tile6.png
 D:/CODE/RPG_GAME/assets/tiles/tile7.png
 D:/CODE/RPG_GAME/assets/tiles/tile8.png
 D:/CODE/RPG_GAME/assets/tiles/tile9.png
+D:/CODE/RPG_GAME/assets/tiles/tile335.png
+D:/CODE/RPG_GAME/assets/tiles/tile335.png
 D:/CODE/RPG_GAME/assets/tiles/tile000.png
 D:/CODE/RPG_GAME/assets/tiles/tile2.png
 D:/CODE/RPG_GAME/assets/tiles/tile10.png

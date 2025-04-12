@@ -19,6 +19,8 @@ public:
 
     void fadeInTextCenter(const std::string& text, SDL_Color color, int durationMs = 1000);
     void fadeOutTextCenter(const std::string& text, SDL_Color color, int durationMs = 1000);
+    void fadeInText(const std::string& text, SDL_Color color, int x, int y, int durationMs = 1000);
+    void fadeOutText(const std::string& text, SDL_Color color, int x, int y, int durationMs = 1000);
 
 private:
     SDL_Renderer* renderer;

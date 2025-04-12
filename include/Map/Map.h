@@ -10,6 +10,7 @@
 #include "Graphics_Rendering/Animation.h"
 #include "Graphics_Rendering/Textengine.h"
 #include "Core_System/Const.h"
+#include "Core_System/Colision.h"
 
 class Map {
 private:
@@ -26,7 +27,7 @@ private:
     bool mapEditor = true;
     SDL_Texture* palette;
     SDL_Texture* highlightTile;
-    SDL_Texture* previewTile = nullptr;
+    SDL_Texture* previewTile;
     int mouseTileX, mouseTileY;
     int selectedTileX, selectedTileY;
     int paintbrush = 0;
@@ -47,6 +48,7 @@ public:
     int getMapWidth() const { return mapWidth; }
     int getMapHeight() const { return mapHeight; }
     int getTileSize() const { return tileSize; }
+    int getTileIDsize() const { return tiles.size(); }
     bool isMapEditorActive() const { return mapEditor; }
     bool isPaletteOpen() const { return paletteOpen; }
 
@@ -56,6 +58,7 @@ public:
     bool dragTile = false;
     bool isDragging = false;
     bool onionMode = false;
+    bool paletteMetaEditor = false;
     int dragBasePaintbrush = 0;
     int layer = 1;
 
@@ -83,8 +86,15 @@ public:
     
     int clamp(int value, int min, int max);
 
+    // Colision
+    Colision colision;
+    void loadPinData();
+    void savePinData();
+    Colision& getColision() { return colision; }
+
     // text engine
     void displayPaintBrushTileID(TextEngine* textEngine);
+    void comandTracker(TextEngine* textEngine);
 };
 
 #endif

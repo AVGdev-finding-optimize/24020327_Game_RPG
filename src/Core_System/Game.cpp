@@ -9,6 +9,8 @@ int frameTime;
 Game::Game() : player(graphic), gameMap(graphic), camX(0), camY(0) {
     isRunning = false;
     currentCostume = nullptr;
+    logo = nullptr;
+    textEngine = nullptr;
 }
 
 // Destructor
@@ -120,7 +122,6 @@ void Game::intro() {
         for (int alpha = 0; alpha <= 255; alpha += 5) {
             graphic.prepareSceneWithColor(WHITE_COLOR);
             textEngine->showTextCenter("UET - PROJECT GAME", BLACK_COLOR, alpha);
-            /* SDL_SetTextureAlphaMod(logo, alpha); */
 
             graphic.presentScene();
             SDL_Delay(20);
@@ -136,7 +137,7 @@ void Game::intro() {
 
 // Load all tiles from file
 void Game::loadAllTiles(Graphic& graphic) { 
-    std::ifstream file("D:/CODE/RPG_GAME/assets/tiles/layerpaths.txt"); 
+    std::ifstream file("D:/CODE/RPG_GAME/assets/map/Tile_paths.txt"); 
 
     if (!file.is_open()) { 
         std::cerr << "Can't open file  paths.txt! (message from game)\n"; 
@@ -177,7 +178,7 @@ void Game::foreverLoop() {
         updateCamera(player.getX(), player.getY());
         whenKeyPressed(); 
         updateGame();
-        show();           
+        show();
 
         frameTime = SDL_GetTicks() - frameStart;
         if (frameTime < FRAME_DELAY) {
@@ -217,54 +218,62 @@ void Game::handleKeyboardEvents(SDL_Event& event) {
     static bool spacePressed = false;
 
     if (event.type == SDL_KEYDOWN) {
-        if (event.key.keysym.sym == SDLK_m) { 
-            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_1, 1);
-            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_2, 2);
-            gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_3, 3);
-            std::cout << "Map saved! (message from game)\n";
+        if(gameMap.isMapEditorActive()) {
+            if (event.key.keysym.sym == SDLK_m) { 
+                gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_1, 1);
+                gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_2, 2);
+                gameMap.saveMapToFile(VILLAGE_MAP_PATH_LAYER_3, 3);
+                gameMap.savePinData();
+                std::cout << "Map saved! (message from game)\n";
+            }
+            if (event.key.keysym.sym == SDLK_e) {
+                gameMap.eraseTile = !gameMap.eraseTile;
+                gameMap.setPreviewTile();
+            }            
+            if (event.key.keysym.sym == SDLK_1) {
+                if (gameMap.layer == 1) {
+                    gameMap.onionMode = !gameMap.onionMode;
+                } else {
+                    gameMap.layer = 1;
+                }
+            }
+            if (event.key.keysym.sym == SDLK_2) {
+                if (gameMap.layer == 2) {
+                    gameMap.onionMode = !gameMap.onionMode;
+                } else {
+                    gameMap.layer = 2;
+                }
+            }
+            if (event.key.keysym.sym == SDLK_3) {
+                if (gameMap.layer == 3) {
+                    gameMap.onionMode = !gameMap.onionMode;
+                } else {
+                    gameMap.layer = 3;
+                }
+            }
+            if (event.key.keysym.sym == SDLK_p) {
+                gameMap.paletteMetaEditor = !gameMap.paletteMetaEditor;
+            }
+            if (event.key.keysym.sym == SDLK_i) {
+                gameMap.getColision().setPinButtonClicked(true);
+            }
         }
-        if (event.key.keysym.sym == SDLK_e) {
-            gameMap.eraseTile = !gameMap.eraseTile;
-            gameMap.setPreviewTile();
-        }            
+        
         if (event.key.keysym.sym == SDLK_t && !tPressed) { 
             tPressed = true; 
-            if (gameMap.isMapEditorActive()) {
-                gameMap.paletteOpen = !gameMap.paletteOpen;
-                player.setScreenX(gameMap.paletteOpen ? (WINDOW_WIDTH / 2 - PALETTE_WIDTH) : (WINDOW_WIDTH / 2));
+            gameMap.paletteOpen = !gameMap.paletteOpen;
+            player.setScreenX(gameMap.paletteOpen ? (WINDOW_WIDTH / 2 - PALETTE_WIDTH) : (WINDOW_WIDTH / 2));
             player.Refresh(graphic);
-            }
+
             updateGame();
         }
         if (event.key.keysym.sym == SDLK_SPACE && !spacePressed) {
             spacePressed = true;
-            if(gameMap.isMapEditorActive()) {
-                gameMap.dragTile = !gameMap.dragTile;
-            }
+            gameMap.dragTile = !gameMap.dragTile;
             updateGame();
         }
-        if (event.key.keysym.sym == SDLK_1) {
-            if (gameMap.layer == 1) {
-                gameMap.onionMode = !gameMap.onionMode;
-            } else {
-                gameMap.layer = 1;
-            }
-        }
-        if (event.key.keysym.sym == SDLK_2) {
-            if (gameMap.layer == 2) {
-                gameMap.onionMode = !gameMap.onionMode;
-            } else {
-                gameMap.layer = 2;
-            }
-        }
-        if (event.key.keysym.sym == SDLK_3) {
-            if (gameMap.layer == 3) {
-                gameMap.onionMode = !gameMap.onionMode;
-            } else {
-                gameMap.layer = 3;
-            }
-        }
     }
+
     if (event.type == SDL_KEYUP) {
         if (event.key.keysym.sym == SDLK_t) {
             tPressed = false;
@@ -347,6 +356,7 @@ void Game::show() {
     gameMap.showTiles(graphic, camX, camY, 2);
     player.show(graphic);
     gameMap.showTiles(graphic, camX, camY, 3);
+    gameMap.comandTracker(textEngine);
     if (gameMap.isMapEditorActive()) {
         gameMap.highlightCursor(camX, camY);
         if (gameMap.isPaletteOpen()) {

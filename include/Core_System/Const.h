@@ -12,6 +12,7 @@
 #define VILLAGE_MAP_PATH_LAYER_1 "D:/CODE/RPG_GAME/assets/map/Village_layer_1.txt"
 #define VILLAGE_MAP_PATH_LAYER_2 "D:/CODE/RPG_GAME/assets/map/Village_layer_2.txt"
 #define VILLAGE_MAP_PATH_LAYER_3 "D:/CODE/RPG_GAME/assets/map/Village_layer_3.txt"
+#define COLISION_PATH "D:/CODE/RPG_GAME/assets/map/Tile_pins.txt"
 
 // Logo
 #define LOGO_PATH "D:/CODE/RPG_GAME/assets/background/logo.png"

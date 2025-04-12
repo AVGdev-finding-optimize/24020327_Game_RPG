@@ -6,8 +6,10 @@
 
 // Render case block
 Map::Map(Graphic& graphic) 
-    : graphic(graphic), background(graphic, 100), tileSize(32), mapWidth(0), mapHeight(0) {
+    : graphic(graphic), background(graphic, 100), tileSize(32), mapWidth(0), mapHeight(0), colision(graphic) {
     tileMapLayerA.clear();
+    tileMapLayerB.clear();
+    tileMapLayerC.clear();
     tiles.clear();
 }
 
@@ -56,10 +58,6 @@ void Map::loadTileset(Graphic& graphic, const std::vector<std::string>& tilePath
         return;
     }
 
-    if (!tiles.empty()) {
-        SDL_SetTextureAlphaMod(tiles[0], TILE_0_ALPHA);
-    }
-
     highlightTile = graphic.loadTexture("D:/CODE/RPG_GAME/assets/tiles/Outline.png");
     if (!highlightTile) {
         std::cerr << "ERROR: Failed to load highlight tile (Outline.png)! (message from map)" << std::endl;
@@ -69,7 +67,7 @@ void Map::loadTileset(Graphic& graphic, const std::vector<std::string>& tilePath
 
     palette = graphic.loadTexture("D:/CODE/RPG_GAME/assets/background/window.png");
     if (!palette) {
-        std::cerr << "ERROR: Failed to load editor window (Outline.png)! (message from map)" << std::endl;
+        std::cerr << "ERROR: Failed to load editor window! (message from map)" << std::endl;
     }
 }
 
@@ -129,7 +127,7 @@ void Map::setMapLayoutFromFile(const std::string& filename, int layoutIndex) {
         rowIndex++;
     }
 
-    switch (layoutIndex) {
+    /* switch (layoutIndex) {
         case 1:
             for (const auto& row : tileMapLayerA) {
                 for (int tileID : row) {
@@ -158,11 +156,11 @@ void Map::setMapLayoutFromFile(const std::string& filename, int layoutIndex) {
             std::cerr << "ERROR: Invalid layout index! (message from map)" << std::endl;
             break;
     }
-
+ */
     mapHeight = tileMapLayerA.size();
     mapWidth = (mapHeight > 0) ? tileMapLayerA[0].size() : 0;
 
-    std::cout << "Map layout 1 size: " << mapWidth << " x " << mapHeight << std::endl;
+    std::cout << "Map layout size: " << mapWidth << " x " << mapHeight << std::endl;
 }
 
 // Render map block
@@ -205,8 +203,6 @@ void Map::showTiles(Graphic& graphic, int camX, int camY, int layerIndex) {
                 screenY + tileSize * UPSCALE > 0 && screenY < WINDOW_HEIGHT);
             if (!isVisible) continue;
 
-            int texWidth, texHeight;
-            SDL_QueryTexture(tiles[tileID], nullptr, nullptr, &texWidth, &texHeight);
             if (tiles[tileID]) {
                 if (onionMode) {
                     if (layerIndex == layer) {
@@ -217,12 +213,9 @@ void Map::showTiles(Graphic& graphic, int camX, int camY, int layerIndex) {
                 } else {
                     SDL_SetTextureAlphaMod(tiles[tileID], 255);
                 }
-                if (texWidth < tileSize && (tileID == 67 || tileID == 85)) {
-                    graphic.renderTextureKeepRatio(tiles[tileID], screenX + (tileSize - texWidth) * UPSCALE, screenY, UPSCALE);
-                } else {
-                    graphic.renderTextureKeepRatio(tiles[tileID], screenX, screenY, UPSCALE);
-                }
             }
+
+            graphic.renderTextureKeepRatio(tiles[tileID], screenX, screenY, UPSCALE);
         }
     }
 }
@@ -276,6 +269,8 @@ void Map::saveMapToFile(const std::string& filePath, int layoutIndex) {
 void Map::showPalette() {
     if (!paletteOpen) {
         std::cerr << "ERROR: Cannot open palette editor! (message from map)" << std::endl;
+        graphic.presentScene();
+        graphic.presentScene();
         return;
     }
 
@@ -292,45 +287,42 @@ void Map::showPalette() {
 
     if (mapEditor && palette) {
         graphic.renderTextureKeepRatio(palette, paletteX - 20, paletteY - 20, UPSCALE);
-    }
+        int tileIndex = 0;
+        int saveX, saveY;
+        for (int row = 0; row < VIEW_ROWS; ++row) {
+            for (int col = 0; col < VIEW_COLS; ++col) {
+                int globalRow = paletteOffsetY + row;
+                int globalCol = paletteOffsetX + col + 1;
+                tileIndex = globalRow * TOTAL_COLS + globalCol;
 
-    int tileIndex = 0;
-    int saveX, saveY;
-    for (int row = 0; row < VIEW_ROWS; ++row) {
-        for (int col = 0; col < VIEW_COLS; ++col) {
-            int globalRow = paletteOffsetY + row;
-            int globalCol = paletteOffsetX + col + 1;
-            tileIndex = globalRow * TOTAL_COLS + globalCol;
+                if (tileIndex == 0 || tileIndex >= static_cast<int>(tiles.size())) continue;
 
-            if (tileIndex == 0 || tileIndex >= static_cast<int>(tiles.size())) continue;
+                int tileX = paletteX + tileSpacing + col * (tileSizeScaled + tileSpacing);
+                int tileY = paletteY + tileSpacing + row * (tileSizeScaled + tileSpacing);
 
-            int tileX = paletteX + tileSpacing + col * (tileSizeScaled + tileSpacing);
-            int tileY = paletteY + tileSpacing + row * (tileSizeScaled + tileSpacing);
-            
-            if (tileIndex == selectedTile) {
-                saveX = tileX;
-                saveY = tileY;
-            }
+                SDL_Texture* tileTexture = tiles[tileIndex];
+                if (!tileTexture) continue;
 
-            SDL_Texture* tileTexture = tiles[tileIndex];
-            if (!tileTexture) continue;
+                SDL_SetTextureAlphaMod(tileTexture, 255);
 
-            SDL_SetTextureAlphaMod(tileTexture, 255);
+                int texWidth, texHeight;
+                SDL_QueryTexture(tileTexture, nullptr, nullptr, &texWidth, &texHeight);
 
-            int texWidth, texHeight;
-            SDL_QueryTexture(tileTexture, nullptr, nullptr, &texWidth, &texHeight);
-
-            if (texWidth < tileSize && (tileIndex == 67 || tileIndex == 85)) {
-                graphic.renderTextureKeepRatio(tileTexture, tileX + (tileSize - texWidth) * UPSCALE, tileY, UPSCALE);
-            } else {
+                if (tileIndex == selectedTile) {
+                    saveX = tileX;
+                    saveY = tileY;
+                }
                 graphic.renderTextureKeepRatio(tileTexture, tileX, tileY, UPSCALE);
+                if (paletteMetaEditor) {
+                    colision.drawPinPalette(graphic.getRenderer(), tileIndex, tileX, tileY);
+                }
             }
         }
+        colision.setPinButtonClicked(false);
+        if (tileIndex == selectedTile) {
+            graphic.renderTextureKeepRatio(highlightTile, saveX, saveY, UPSCALE);
+        }
     }
-    if (tileIndex == selectedTile) {
-        graphic.renderTextureKeepRatio(highlightTile, saveX, saveY, UPSCALE);
-    }
-    std::cout << "Palette is opening! (message from map)" << std::endl;
 }
 
 void Map::setPreviewTile() {
@@ -502,8 +494,68 @@ void Map::displayPaintBrushTileID(TextEngine* textEngine) {
     std::string dragText = dragTile ? "Drag mode: ON" : "Drag mode: OFF";
     textEngine->showText(dragText, WINDOW_WIDTH - PALETTE_WIDTH, WINDOW_HEIGHT - 90, WHITE_COLOR);
     std::string layerText = "Layer: " + std::to_string(layer);
-    textEngine->showText(layerText, 20, 20, WHITE_COLOR);
+    textEngine->showText(layerText, 20, WINDOW_HEIGHT - 50, WHITE_COLOR);
+    std::string onionText = onionMode ? "Onion mode: ON" : "Onion mode: OFF";
+    textEngine->showText(onionText, 20, WINDOW_HEIGHT - 70, WHITE_COLOR);
+    std::string ColisionText = paletteMetaEditor ? "Collision mode: ON" : "Collision mode: OFF";
+    textEngine->showText(ColisionText, 20, WINDOW_HEIGHT - 90, WHITE_COLOR);
     graphic.presentScene();
+}
+
+void Map::comandTracker(TextEngine * textEngine) {
+    if (!textEngine) {
+        std::cerr << "TextEngine not initialized!" << std::endl;
+        return;
+    }
+    std::string commandText;
+    if (paletteOpen) {
+        commandText = "Press 'T' to close palette editor";
+        textEngine->showText(commandText, 20, 20, WHITE_COLOR, 255);
+        if (eraseTile) {
+            commandText = "Press 'E' to disable erase mode";
+            textEngine->showText(commandText, 20, 40, WHITE_COLOR, 255);
+        } else {
+            commandText = "Press 'E' to enable erase mode";
+            textEngine->showText(commandText, 20, 40, WHITE_COLOR, 255);
+        }
+        if (dragTile) {
+            commandText = "Press 'Space' to disable drag mode";
+            textEngine->showText(commandText, 20, 60, WHITE_COLOR, 255);
+        } else {
+            commandText = "Press 'Space' to enable drag mode";
+            textEngine->showText(commandText, 20, 60, WHITE_COLOR, 255);
+        }
+        if (onionMode) {
+            commandText = "Press " + std::to_string(layer) + " to disable onion mode";
+            textEngine->showText(commandText, 20, 80, WHITE_COLOR, 255);
+        } else {
+            commandText = "Press " + std::to_string(layer) + " to enable onion mode";
+            textEngine->showText(commandText, 20, 80, WHITE_COLOR, 255);
+        }
+        if (paletteMetaEditor) {
+            commandText = "Press 'P' to disable collision mode";
+            textEngine->showText(commandText, 20, 100, WHITE_COLOR, 255);
+        } else {
+            commandText = "Press 'P' to enable collision mode";
+            textEngine->showText(commandText, 20, 100, WHITE_COLOR, 255);
+        }
+        commandText = "Press 'M' to save map";
+        textEngine->showText(commandText, 20, 120, WHITE_COLOR, 255);
+    } else {
+        commandText = "Press 'T' to open palette editor";
+        textEngine->showText(commandText, 20, 20, WHITE_COLOR, 255);
+        commandText = "Press 'M' to save map";
+        textEngine->showText(commandText, 20, 40, WHITE_COLOR, 255);
+    } 
+}   
+
+// ---------- Colision block ----------
+void Map::loadPinData() {
+    colision.loadPinData(COLISION_PATH);
+}
+
+void Map::savePinData() {
+    colision.savePinData(COLISION_PATH);
 }
 
 int Map::clamp(int value, int min, int max) {

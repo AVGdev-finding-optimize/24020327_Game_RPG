@@ -10,7 +10,7 @@ int SDL_main(int argc, char* argv[]) {
         delete game;
         return -1;
     }
-    game->intro();
+    /* game->intro(); */
     game->foreverLoop();
 
     delete game;

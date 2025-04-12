@@ -10,7 +10,8 @@ Nguyễn Đức Toàn - MSV: 24020327
 2.1. Tính năng dành cho phát triển game:
 Hệ thống map-editor cho phép người phát triển game có thể thay đổi các bối cảnh của bản đồ để chỉnh sửa hoặc nâng cấp. 
 Có công cụ vẽ trực quan giúp người phát triển game có thể thay đổi bản đồ game một cách trực quan mà không cần thông qua code, bên cạnh đó có tính năng “tracing” giúp người phát triển game có thể thực hiện tạo bản đồ nhanh chóng với khả năng tự hoàn thiện.
-3. Những khó khăn gặp phải
+Có chức năng “Onion” để có thể dễ dàng kiểm soát các layer đang chỉnh sửa
+4. Những khó khăn gặp phải
 3.1. Lỗi biên dịch và cú pháp:
 Phát sinh do sai sót khi viết mã, chưa tuân thủ đúng quy tắc ngôn ngữ lập trình.
 Phát sinh do quá trình cài đặt phần mềm, thư viện không đúng cách.
@@ -18,7 +19,7 @@ Phát sinh do quá trình cài đặt phần mềm, thư viện không đúng c�
 3.3. Đọc file bản đồ và xử lý dữ liệu: Lỗi khi định dạng file không đúng, thứ tự đọc file không hợp lý, dẫn đến dữ liệu bị thiếu hoặc sai lệch.
 3.4. Lỗi vị trí camera và di chuyển nhân vật: Sai sót trong phép tính toán định vị, gây ra hiện tượng nhân vật hoặc camera di chuyển không đúng ý muốn.
 3.5. Các vấn đề trong giao diện người dùng: Lỗi hiển thị cửa sổ chỉnh sửa bản đồ và các phần tử đồ họa không tương thích với kích thước màn hình hoặc cấu hình hệ thống.
-4. Cách khắc phục
+5. Cách khắc phục
 4.1. Sửa lỗi biên dịch:
 Kiểm tra kỹ thông báo lỗi, so sánh với tài liệu và các ví dụ mẫu.
 Sử dụng công cụ gỡ lỗi và tham khảo ý kiến từ giảng viên hoặc cộng đồng lập trình.
@@ -34,7 +35,7 @@ Thử nghiệm nhiều kịch bản di chuyển và sắp xếp lại thuật to
 4.5. Khắc phục vấn đề giao diện người dùng:
 Phân tích và kiểm tra mã vẽ giao diện, đảm bảo các thành phần đồ họa được đặt theo cấu trúc rõ ràng và tương thích với nhiều kích thước màn hình.
 Sử dụng các thư viện sẵn có để hỗ trợ và tối ưu hóa quá trình hiển thị.
-5. Hướng phát triển game
+6. Hướng phát triển game
 5.1. Mở rộng cốt truyện và thế giới game:
 Phát triển thêm mạch truyện chính và nhiều mạch truyện phụ, tăng tính tương tác và đưa ra các lựa chọn gây ảnh hưởng đến tiến trình của game.
 Xây dựng thế giới mở với nhiều khu vực khám phá mới, mỗi khu vực có đặc trưng văn hóa và nhiệm vụ riêng.
